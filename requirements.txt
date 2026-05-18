@@ -1,0 +1,5 @@
+opencv-python
+easyocr
+pillow
+ultralytics
+mysql-connector-python

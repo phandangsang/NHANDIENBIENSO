@@ -1,0 +1,2 @@
+class DashboardWindow:
+    pass
