@@ -175,4 +175,6 @@ pip install ultralytics
 YOLO_USE = True
 ```
 '''giao dien chay app 
+vao python 
+mo terminal
 python -m pip install PyQt6
