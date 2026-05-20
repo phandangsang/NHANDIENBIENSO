@@ -1,5 +1,10 @@
-from ui.app import run_app
+from ui.dashboard import Dashboard
+from PyQt6.QtWidgets import QApplication
+import sys
 
+app = QApplication(sys.argv)
 
-if __name__ == "__main__":
-    run_app()
+window = Dashboard()
+window.show()
+
+sys.exit(app.exec())
