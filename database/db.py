@@ -14,8 +14,9 @@ def get_connection(database: str | None = None):
         port=MYSQL_PORT,
         user=MYSQL_USER,
         password=MYSQL_PASSWORD,
-        database=license_plate_parking,
+        database=database,
         autocommit=True,
+        use_pure=True,  # Tránh crash C extension trên Python 3.13
     )
 
 
