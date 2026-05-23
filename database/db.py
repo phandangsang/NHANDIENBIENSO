@@ -14,7 +14,7 @@ def get_connection(database: str | None = None):
         port=MYSQL_PORT,
         user=MYSQL_USER,
         password=MYSQL_PASSWORD,
-        database=database,
+        database=license_plate_parking,
         autocommit=True,
     )
 
