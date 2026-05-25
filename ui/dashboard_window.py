@@ -1,8 +1,10 @@
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QLabel, QVBoxLayout, QWidget
+from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt5.QtWidgets import QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget
 
 
 class DashboardWindow(QWidget):
+    logout_requested = pyqtSignal()
+
     def __init__(self, user: dict):
         super().__init__()
         self.user = user
@@ -17,15 +19,24 @@ class DashboardWindow(QWidget):
         layout = QVBoxLayout()
 
         title = QLabel("DASHBOARD")
-        title.setAlignment(Qt.AlignCenter)
         title.setStyleSheet("font-size: 24px; font-weight: bold;")
 
         subtitle = QLabel(f"Xin chao {full_name} - vai tro: {role}")
-        subtitle.setAlignment(Qt.AlignCenter)
 
-        layout.addStretch()
-        layout.addWidget(title)
-        layout.addWidget(subtitle)
+        logout_button = QPushButton("Dang xuat")
+        logout_button.clicked.connect(self._handle_logout)
+
+        header = QHBoxLayout()
+        header.addWidget(title)
+        header.addStretch()
+        header.addWidget(subtitle)
+        header.addSpacing(12)
+        header.addWidget(logout_button)
+
+        layout.addLayout(header)
         layout.addStretch()
 
         self.setLayout(layout)
+
+    def _handle_logout(self) -> None:
+        self.logout_requested.emit()
