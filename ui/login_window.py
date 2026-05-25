@@ -75,3 +75,8 @@ class LoginWindow(QWidget):
 
         QMessageBox.information(self, "Dang nhap thanh cong", result["message"])
         self.login_success.emit(result["user"])
+
+    def reset_form(self) -> None:
+        self.username_input.clear()
+        self.password_input.clear()
+        self.username_input.setFocus()
