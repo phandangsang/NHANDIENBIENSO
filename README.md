@@ -153,7 +153,7 @@ pip install -r requirements.txt
 
 - Tao MySQL database va user (hoac dung `root`).
 - Chinh sua thong tin ket noi trong `config.py`: `MYSQL_HOST`, `MYSQL_PORT`, `MYSQL_USER`, `MYSQL_PASSWORD`, `MYSQL_DATABASE`.
-
+    python -c "from database.db import init_database; init_database(); print('OK')"
 ## Chay chuong trinh
 
 ```bash
@@ -177,4 +177,4 @@ YOLO_USE = True
 '''giao dien chay app 
 vao python 
 mo terminal
-python -m pip install PyQt6
+python -m pip install PyQt5

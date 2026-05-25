@@ -1,0 +1,29 @@
+#sidebar {
+    background-color: rgb(8, 8, 8);
+    border-right: 1px solid #346399;
+}
+
+QPushButton {
+    background-color: #2563eb;
+    border: none;
+    padding: 12px;
+    text-align: left;
+    font-size: 15px;
+    border-radius: 10px;
+}
+
+QPushButton:hover {
+    background-color: #152253;
+}
+
+#activeBtn {
+    background-color: #cf0f19;
+    color: #2D5BFF;
+    font-weight: bold;
+}
+
+QLabel {
+    font-size: 28px;
+    font-weight: bold;
+    color: #1D4ED8;
+}
