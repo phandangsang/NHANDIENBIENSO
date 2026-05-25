@@ -166,6 +166,8 @@ python main.py
 
 ```bash
 pip install ultralytics
+python -m pip install PyQt5
+
 ```
 
 2. Dat model YOLOv8 (file `.pt`) vao `weights/` (vi du `weights/license_plate_yolov8.pt`).
@@ -174,7 +176,4 @@ pip install ultralytics
 ```python
 YOLO_USE = True
 ```
-'''giao dien chay app 
-vao python 
-mo terminal
-python -m pip install PyQt5
+
