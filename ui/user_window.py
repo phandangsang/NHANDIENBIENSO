@@ -6,7 +6,6 @@ from PyQt5.QtWidgets import (
     QFrame, QMessageBox, QDialog, QComboBox,
     QSpacerItem, QStackedWidget,
 )
-from models.user_model import User
 from PyQt5.QtWidgets import QSizePolicy
 
 # ─── COLORS ──────────────────────────────────────────────
@@ -185,6 +184,9 @@ class AvatarLabel(QLabel):
         self.initials = initials.upper()[:2]
         self.color = QColor(color)
         self.setFixedSize(size, size)
+        
+        self.setAttribute(Qt.WA_TranslucentBackground)
+        self.setStyleSheet("background: transparent; border: none;")
 
     def paintEvent(self, event):
         painter = QPainter(self)
@@ -236,6 +238,49 @@ def _role_color(role: str) -> str:
 
 
 # ════════════════════════════════════════════════════════
+# CustomConfirmDialog — Hộp thoại xác nhận xoá hình vuông nền tối
+# ════════════════════════════════════════════════════════
+class CustomConfirmDialog(QDialog):
+    def __init__(self, parent=None, title_text: str = "Xác nhận", message_text: str = ""):
+        super().__init__(parent)
+        self.setWindowTitle(title_text)
+        self.setFixedSize(360, 160)
+        
+        self.setStyleSheet(
+            STYLE + 
+            f"QDialog {{ background: {BG_DARK}; }}"
+            f"QLabel {{ color: {TEXT_WHITE}; font-size: 14px; border: none; background: transparent; }}"
+            f"QPushButton {{ border-radius: 4px; padding: 6px 16px; font-size: 13px; font-weight: bold; }}"
+        )
+
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(24, 24, 24, 24)
+        layout.setSpacing(20)
+
+        self.lbl_msg = QLabel(message_text)
+        self.lbl_msg.setWordWrap(True)
+        layout.addWidget(self.lbl_msg)
+
+        btn_row = QHBoxLayout()
+        btn_row.setSpacing(10)
+        btn_row.addStretch()
+
+        self.btn_no = QPushButton("No")
+        self.btn_no.setObjectName("btnSecondary")
+        self.btn_no.setFixedSize(70, 32)
+        self.btn_no.clicked.connect(self.reject)
+
+        self.btn_yes = QPushButton("Yes")
+        self.btn_yes.setObjectName("btnPrimary")
+        self.btn_yes.setFixedSize(70, 32)
+        self.btn_yes.clicked.connect(self.accept)
+
+        btn_row.addWidget(self.btn_no)
+        btn_row.addWidget(self.btn_yes)
+        layout.addLayout(btn_row)
+
+
+# ════════════════════════════════════════════════════════
 # UserRowWidget — item trong sidebar
 # ════════════════════════════════════════════════════════
 class UserRowWidget(QWidget):
@@ -258,7 +303,7 @@ class UserRowWidget(QWidget):
         initials = _get_initials(
             self.user.get("full_name", ""),
             self.user.get("username", "?"),
-        )
+            )
         avatar = AvatarLabel(initials, _avatar_color(self.user.get("id", 0)), 38)
         layout.addWidget(avatar)
 
@@ -268,9 +313,7 @@ class UserRowWidget(QWidget):
         top = QHBoxLayout()
         top.setSpacing(6)
         name_lbl = QLabel(self.user.get("full_name") or self.user.get("username", ""))
-        name_lbl.setStyleSheet(
-            f"font-size: 13px; font-weight: bold; color: {TEXT_WHITE};"
-        )
+        name_lbl.setStyleSheet(f"font-size: 13px; font-weight: bold; color: {TEXT_WHITE};")
         top.addWidget(name_lbl)
         top.addStretch()
 
@@ -279,19 +322,18 @@ class UserRowWidget(QWidget):
             badge = QLabel(str(notif))
             badge.setFixedSize(18, 18)
             badge.setAlignment(Qt.AlignCenter)
+            # 🌟 ĐÃ SỬA: Thêm border: none; background-color cụ thể để diệt tận gốc khung vuông trắng của badge
             badge.setStyleSheet(
-                f"background: {ACCENT}; color: white; border-radius: 9px;"
-                f" font-size: 10px; font-weight: bold;"
+                f"QLabel {{ background-color: {ACCENT}; color: white; border-radius: 9px;"
+                f" font-size: 10px; font-weight: bold; border: none; }}"
             )
             top.addWidget(badge)
         info.addLayout(top)
-
 
         bot = QHBoxLayout()
         bot.setSpacing(5)
 
         role = self.user.get("role", "staff")
-
         role_lbl = QLabel(_role_text(role))
         role_lbl.setStyleSheet(f"font-size: 11px; color: {_role_color(role)};")
 
@@ -300,25 +342,23 @@ class UserRowWidget(QWidget):
 
         bot.addWidget(role_lbl)
         bot.addWidget(sep)
-
         bot.addStretch()
 
         info.addLayout(bot)
-
         layout.addLayout(info)
 
     def _apply_style(self, selected: bool):
         self.selected = selected
         if selected:
             self.setStyleSheet(
-                f"QWidget {{ background: {BG_SELECTED}; border-radius: 8px;"
-                f" border-left: 3px solid {ACCENT}; }}"
+                f"QWidget {{ background-color: {BG_SELECTED}; border-radius: 6px; border-left: 3px solid {ACCENT}; }} "
+                f"QLabel {{ border: none; background: transparent; }}"
             )
         else:
             self.setStyleSheet(
-                f"QWidget {{ background: transparent; border-radius: 8px;"
-                f" border-left: 3px solid transparent; }}"
-                f"QWidget:hover {{ background: {BG_CARD}; }}"
+                f"QWidget {{ background-color: transparent; border-radius: 6px; border-left: 3px solid transparent; }} "
+                f"QWidget:hover {{ background-color: rgba(255, 255, 255, 0.05); }} "
+                f"QLabel {{ border: none; background: transparent; }}"
             )
 
     def set_selected(self, val: bool):
@@ -340,7 +380,8 @@ class UserDialog(QDialog):
         self.result_data: dict = {}
 
         self.setWindowTitle("Sửa thông tin" if self.is_edit else "Thêm người dùng mới")
-        self.setFixedSize(420, 340 if self.is_edit else 390)
+        # Tăng nhẹ chiều cao (360 và 420) để form thoáng hơn khi có khoảng cách giãn dòng
+        self.setFixedSize(420, 360 if self.is_edit else 430)
         self.setStyleSheet(STYLE + f"QDialog {{ background: {BG_DARK}; }}")
         self._build()
         if self.is_edit:
@@ -348,19 +389,23 @@ class UserDialog(QDialog):
 
     def _build(self):
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(24, 20, 24, 20)
-        layout.setSpacing(10)
+        layout.setContentsMargins(24, 24, 24, 24) # Đều rìa 24px cho chuẩn UI
+        layout.setSpacing(6) # Spacing nhỏ giúp Nhãn chữ dính gần vào Ô Nhập của chính nó
 
         title = QLabel("Sửa thông tin" if self.is_edit else "Thêm người dùng mới")
-        title.setStyleSheet(f"font-size: 16px; font-weight: bold; color: {TEXT_WHITE};")
+        title.setStyleSheet(f"font-size: 16px; font-weight: bold; color: {TEXT_WHITE}; border: none; background: transparent;")
         layout.addWidget(title)
         layout.addWidget(_make_divider())
+        layout.addSpacing(8) # Khoảng cách từ tiêu đề xuống ô nhập đầu tiên
 
+        # 🌟 ĐOẠN SỬA CHÍNH: Cập nhật lại hàm tạo field chung
         def field(label_text, widget):
             lbl = QLabel(label_text)
-            lbl.setStyleSheet(f"font-size: 11px; color: {TEXT_MUTED};")
+            # Thêm border: none và background: transparent để DIỆT TẬN GỐC khung trắng
+            lbl.setStyleSheet(f"font-size: 12px; font-weight: bold; color: {TEXT_MUTED}; border: none; background: transparent;")
             layout.addWidget(lbl)
             layout.addWidget(widget)
+            layout.addSpacing(12) # 🌟 Tự động tạo khoảng cách giãn đều với cụm tiếp theo
 
         self.inp_username = QLineEdit()
         self.inp_username.setPlaceholderText("Tên đăng nhập...")
@@ -386,7 +431,8 @@ class UserDialog(QDialog):
             self.inp_password.setEchoMode(QLineEdit.Password)
             field("Mật khẩu", self.inp_password)
 
-        layout.addSpacerItem(QSpacerItem(0, 6))
+        # Giữ khoảng cách vừa phải trước khi đến hàng nút bấm
+        layout.addSpacerItem(QSpacerItem(0, 10))
 
         btn_row = QHBoxLayout()
         btn_row.setSpacing(8)
@@ -425,7 +471,6 @@ class UserDialog(QDialog):
             self.result_data["password"] = p
         self.accept()
 
-
 # ════════════════════════════════════════════════════════
 # ChangePasswordDialog
 # ════════════════════════════════════════════════════════
@@ -435,23 +480,29 @@ class ChangePasswordDialog(QDialog):
         super().__init__(parent)
         self.new_password = ""
         self.setWindowTitle("Đổi mật khẩu")
-        self.setFixedSize(380, 250)
+        # 🌟 Tăng chiều cao từ 250 lên 280 để form thoáng đẹp sau khi giãn dòng
+        self.setFixedSize(380, 280)
         self.setStyleSheet(STYLE + f"QDialog {{ background: {BG_DARK}; }}")
 
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(24, 20, 24, 20)
-        layout.setSpacing(12)
+        layout.setContentsMargins(24, 24, 24, 24) # Căn đều rìa 24px cho đẹp
+        layout.setSpacing(6) # Giữ khoảng cách khít giữa chữ và ô nhập tương ứng
 
         title = QLabel(f"Đổi mật khẩu — {username}")
-        title.setStyleSheet(f"font-size: 15px; font-weight: bold; color: {TEXT_WHITE};")
+        # Thêm khử viền trắng cho tiêu đề
+        title.setStyleSheet(f"font-size: 15px; font-weight: bold; color: {TEXT_WHITE}; border: none; background: transparent;")
         layout.addWidget(title)
         layout.addWidget(_make_divider())
+        layout.addSpacing(8) # Khoảng cách từ tiêu đề xuống ô bên dưới
 
+        # 🌟 ĐOẠN SỬA CHÍNH: Cập nhật hàm field xóa viền trắng và giãn cách
         def field(lbl_text, widget):
             lbl = QLabel(lbl_text)
-            lbl.setStyleSheet(f"font-size: 11px; color: {TEXT_MUTED};")
+            # Thêm border: none và background: transparent để xóa sạch viền trắng cứng đầu
+            lbl.setStyleSheet(f"font-size: 12px; font-weight: bold; color: {TEXT_MUTED}; border: none; background: transparent;")
             layout.addWidget(lbl)
             layout.addWidget(widget)
+            layout.addSpacing(12) # 🌟 Tạo khoảng cách 12px đều đặn giữa cụm này với cụm tiếp theo
 
         self.inp_new = QLineEdit()
         self.inp_new.setPlaceholderText("Mật khẩu mới...")
@@ -463,7 +514,8 @@ class ChangePasswordDialog(QDialog):
         self.inp_confirm.setEchoMode(QLineEdit.Password)
         field("Xác nhận", self.inp_confirm)
 
-        layout.addSpacerItem(QSpacerItem(0, 4))
+        layout.addSpacerItem(QSpacerItem(0, 8))
+        
         btn_row = QHBoxLayout()
         btn_row.setSpacing(8)
         bc = QPushButton("Hủy")
@@ -496,9 +548,7 @@ class _StatCard(QFrame):
 
     def __init__(self, number, label: str, number_color: str = TEXT_WHITE, parent=None):
         super().__init__(parent)
-        self.setStyleSheet(
-            f"QFrame {{ background: {STAT_BG}; border: none; border-radius: 0px; }}"
-        )
+        self.setStyleSheet(f"QFrame {{ background: {BG_CARD}; border: 1px solid {BORDER}; border-radius: 6px; }}")
 
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.setMinimumHeight(90)
@@ -510,18 +560,12 @@ class _StatCard(QFrame):
 
         num_lbl = QLabel(str(number))
         num_lbl.setAlignment(Qt.AlignCenter)
-        num_lbl.setStyleSheet(
-            f"font-size: 28px; font-weight: bold; color: {number_color};"
-            f" background: transparent; border: none;"
-        )
+        num_lbl.setStyleSheet(f"font-size: 28px; font-weight: bold; color: {number_color}; background: transparent; border: none;")
         layout.addWidget(num_lbl)
 
         lbl = QLabel(label.upper())
         lbl.setAlignment(Qt.AlignCenter)
-        lbl.setStyleSheet(
-            f"font-size: 10px; color: {TEXT_MUTED}; letter-spacing: 1px;"
-            f" background: transparent; border: none;"
-        )
+        lbl.setStyleSheet(f"font-size: 10px; color: {TEXT_MUTED}; letter-spacing: 1px; background: transparent; border: none;")
         layout.addWidget(lbl)
 
 
@@ -532,9 +576,8 @@ class _InfoField(QFrame):
 
     def __init__(self, label: str, value: str, parent=None):
         super().__init__(parent)
-        self.setStyleSheet(
-            f"QFrame {{ background: {STAT_BG}; border: none; border-radius: 0px; }}"
-        )
+        self.setStyleSheet(f"QFrame {{ background: {BG_CARD}; border: 1px solid {BORDER}; border-radius: 6px; }}")
+
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.setMinimumHeight(70)
         layout = QVBoxLayout(self)
@@ -542,16 +585,11 @@ class _InfoField(QFrame):
         layout.setSpacing(3)
 
         lbl = QLabel(label.upper())
-        lbl.setStyleSheet(
-            f"font-size: 10px; color: {TEXT_MUTED}; letter-spacing: 1px;"
-            f" background: transparent; border: none;"
-        )
+        lbl.setStyleSheet(f"font-size: 10px; color: {TEXT_MUTED}; letter-spacing: 1px; background: transparent; border: none;")
         layout.addWidget(lbl)
 
         val = QLabel(value if value else "—")
-        val.setStyleSheet(
-            f"font-size: 13px; color: {TEXT_LIGHT}; background: transparent; border: none;"
-        )
+        val.setStyleSheet(f"font-size: 13px; color: {TEXT_LIGHT}; background: transparent; border: none;")
         layout.addWidget(val)
 
 
@@ -562,16 +600,13 @@ class _ScanRow(QFrame):
 
     _STATUS = {
         "THÔNG QUA": ("#22c55e", "#052e16"),
-        "CẢNH BÁO":  ("#f59e0b", "#2d1a00"),
+        "CẢNH BÁO":   ("#f59e0b", "#2d1a00"),
         "TỪ CHỐI":   ("#ef4444", "#2d0a0a"),
     }
 
     def __init__(self, plate: str, info: str, scan_time: str, status: str, parent=None):
         super().__init__(parent)
-        self.setStyleSheet(
-            f"QFrame {{ background: {BG_CARD}; border: 1px solid {BORDER};"
-            f" border-radius: 6px; }}"
-        )
+        self.setStyleSheet(f"QFrame {{ background: {BG_CARD}; border: 1px solid {BORDER}; border-radius: 6px; }}")
         layout = QHBoxLayout(self)
         layout.setContentsMargins(14, 10, 14, 10)
         layout.setSpacing(14)
@@ -581,78 +616,29 @@ class _ScanRow(QFrame):
         plate_lbl.setAlignment(Qt.AlignCenter)
         plate_lbl.setStyleSheet(
             "font-size: 14px; font-weight: bold; color: #1a1a1a;"
-            " background: #e2e8f0; border-radius: 4px; padding: 3px 10px;"
+            " background: #e2e8f0; border-radius: 4px; padding: 3px 10px; border: none;"
         )
         layout.addWidget(plate_lbl)
 
         info_lbl = QLabel(info)
-        info_lbl.setStyleSheet(
-            f"font-size: 12px; color: {TEXT_MUTED}; background: transparent;"
-        )
+        info_lbl.setStyleSheet(f"font-size: 12px; color: {TEXT_MUTED}; background: transparent; border: none;")
         layout.addWidget(info_lbl, stretch=1)
 
         time_lbl = QLabel(scan_time)
-        time_lbl.setStyleSheet(
-            f"font-size: 12px; color: {TEXT_MUTED}; background: transparent;"
-        )
+        time_lbl.setStyleSheet(f"font-size: 12px; color: {TEXT_MUTED}; background: transparent; border: none;")
         layout.addWidget(time_lbl)
 
         fg, bg = self._STATUS.get(status, (TEXT_LIGHT, BG_CARD))
         status_lbl = QLabel(status)
         status_lbl.setStyleSheet(
             f"font-size: 11px; font-weight: bold; color: {fg}; background: {bg};"
-            f" border-radius: 4px; padding: 3px 10px;"
+            f" border-radius: 4px; padding: 3px 10px; border: none;"
         )
         layout.addWidget(status_lbl)
 
 
 # ════════════════════════════════════════════════════════
-# UserPage — trang quản lý người dùng
-#
-# Cách dùng trong DashboardWindow:
-#
-#   # Khởi tạo (không cần tham số)
-#   self.user_page = UserPage()
-#   self.stack.addWidget(self.user_page)
-#
-#   # Gán callbacks sau khi có controller (tuỳ chọn)
-#   self.user_page.set_callbacks(
-#       on_add=lambda data: ...,
-#       on_edit=lambda uid, data: ...,
-#       on_delete=lambda uid: ...,
-#       on_change_password=lambda uid, pw: ...,
-#   )
-#
-#   # Nạp / cập nhật dữ liệu từ DB
-#   self.user_page.load_users(users)          # nạp toàn bộ danh sách
-#   self.user_page.refresh_user(updated_user) # cập nhật 1 user sau edit
-#   self.user_page.remove_user(user_id)       # xóa 1 user sau khi DB xác nhận
-#
-# Cấu trúc dict user tối thiểu:
-#   {
-#       "id": int,
-#       "username": str,
-#       "full_name": str | None,
-#       "role": "staff" | "manager" | "admin",
-#       "online": bool,
-#       "notif": int,           # tuỳ chọn
-#       "phone": str,           # tuỳ chọn
-#       "email": str,           # tuỳ chọn
-#       "shift": str,           # tuỳ chọn, VD: "Ca sáng 06:00-14:00"
-#       "stats": {              # tuỳ chọn
-#           "total": int,
-#           "warning": int,
-#           "denied": int,
-#       },
-#       "recent_scans": [       # tuỳ chọn
-#           {
-#               "plate": str,
-#               "info": str,    # VD: "Đồng Nai · Xe tải"
-#               "time": str,
-#               "status": "THÔNG QUA" | "CẢNH BÁO" | "TỪ CHỐI",
-#           }
-#       ],
-#   }
+# UserPage — trang quản lý người dùng chính
 # ════════════════════════════════════════════════════════
 class UserPage(QWidget):
 
@@ -662,7 +648,6 @@ class UserPage(QWidget):
         self._selected: dict = None
         self._rows: list = []
 
-        # Callbacks — gán từ controller qua set_callbacks()
         self.on_add             = None
         self.on_edit            = None
         self.on_delete          = None
@@ -672,25 +657,19 @@ class UserPage(QWidget):
         self.setStyleSheet(STYLE)
         self._build_ui()
 
-    # ── Public API ───────────────────────────────────────
-
-    def set_callbacks(self, *, on_add=None, on_edit=None,
-                      on_delete=None, on_change_password=None):
-        """Gán callback từ controller/dashboard."""
+    def set_callbacks(self, *, on_add=None, on_edit=None, on_delete=None, on_change_password=None):
         self.on_add             = on_add
         self.on_edit            = on_edit
         self.on_delete          = on_delete
         self.on_change_password = on_change_password
 
     def load_users(self, users: list):
-        """Nạp toàn bộ danh sách user. Gọi sau khi lấy dữ liệu từ DB."""
         self._users = list(users)
         self._render_list(self._users)
         if self._users:
             self._select_user(self._users[0])
 
     def refresh_user(self, updated_user: dict):
-        """Cập nhật 1 user sau khi edit thành công."""
         for i, u in enumerate(self._users):
             if u["id"] == updated_user["id"]:
                 self._users[i] = updated_user
@@ -701,21 +680,34 @@ class UserPage(QWidget):
             self._build_detail(updated_user)
 
     def remove_user(self, user_id: int):
-        """Xóa user khỏi UI sau khi DB xác nhận xóa."""
         self._users = [u for u in self._users if u["id"] != user_id]
         self._render_list(self._filter(self.search.text()))
         if self._selected and self._selected["id"] == user_id:
             self._selected = None
             self.stack.setCurrentIndex(0)
 
-    # ── Build UI ─────────────────────────────────────────
+    def _filter(self, text: str) -> list:
+        t = text.strip().lower()
+        if not t:
+            return self._users
+        return [u for u in self._users if t in u.get("username", "").lower() or t in u.get("full_name", "").lower()]
+
+    def _on_search(self):
+        self._render_list(self._filter(self.search.text()))
+
+    def _select_user(self, user: dict):
+        self._selected = user
+        for row in self._rows:
+            row.set_selected(row.user["id"] == user["id"])
+        self._build_detail(user)
+        self.stack.setCurrentIndex(1)
 
     def _build_ui(self):
         root = QHBoxLayout(self)
         root.setContentsMargins(0, 0, 0, 0)
         root.setSpacing(0)
 
-        # ── Sidebar ──
+        # Sidebar
         sidebar = QWidget()
         sidebar.setObjectName("sidebar")
         sidebar.setFixedWidth(240)
@@ -747,14 +739,14 @@ class UserPage(QWidget):
 
         sb.addWidget(_make_divider())
 
-        btn_add = QPushButton("＋  Thêm người dùng mới")
+        btn_add = QPushButton("＋   Thêm người dùng mới")
         btn_add.setObjectName("btnAdd")
         btn_add.clicked.connect(self._on_add)
         sb.addWidget(btn_add)
 
         root.addWidget(sidebar)
 
-        # ── Detail panel ──
+        # Detail Panel
         detail_panel = QWidget()
         detail_panel.setObjectName("detailPanel")
         dp = QVBoxLayout(detail_panel)
@@ -763,7 +755,6 @@ class UserPage(QWidget):
         self.stack = QStackedWidget()
         dp.addWidget(self.stack)
 
-        # Trang 0: chưa chọn
         empty_page = QWidget()
         ev = QVBoxLayout(empty_page)
         empty_lbl = QLabel("Chọn người dùng để xem chi tiết")
@@ -772,13 +763,10 @@ class UserPage(QWidget):
         ev.addWidget(empty_lbl)
         self.stack.addWidget(empty_page)
 
-        # Trang 1: chi tiết
         self.detail_page = QWidget()
         self.stack.addWidget(self.detail_page)
 
         root.addWidget(detail_panel, stretch=1)
-
-    # ── Render sidebar list ───────────────────────────────
 
     def _render_list(self, users: list):
         while self.list_layout.count():
@@ -800,205 +788,172 @@ class UserPage(QWidget):
                 if row.user["id"] == self._selected["id"]:
                     row.set_selected(True)
 
-    # ── Build detail ─────────────────────────────────────
-
     def _build_detail(self, user: dict):
-            old = self.detail_page.layout()
-            if old:
-                while old.count():
-                    item = old.takeAt(0)
-                    w = item.widget()
-                    if w:
-                        w.deleteLater()
-                old.deleteLater()
+        old = self.detail_page.layout()
+        if old:
+            while old.count():
+                item = old.takeAt(0)
+                w = item.widget()
+                if w:
+                    w.deleteLater()
+            old.deleteLater()
 
-            layout = QVBoxLayout(self.detail_page)
-            layout.setContentsMargins(0, 0, 0, 0)
-            layout.setSpacing(0)
+        layout = QVBoxLayout(self.detail_page)
+        self.detail_page.setStyleSheet(f"background: {BG_DARK};")
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
 
-            # ── Header ──
-            header = QWidget()
-            header.setStyleSheet(f"background: {BG_DARK};")
-            hdr = QHBoxLayout(header)
-            hdr.setContentsMargins(24, 20, 24, 16)
-            hdr.setSpacing(16)
+        # Header Widget
+        header = QWidget()
+        header.setStyleSheet(f"background: {BG_DARK}; border: none;")
+        hdr = QHBoxLayout(header)
+        hdr.setContentsMargins(24, 20, 24, 16)
+        hdr.setSpacing(16)
 
-            avatar = AvatarLabel(
-                _get_initials(user.get("full_name", ""), user.get("username", "")),
-                _avatar_color(user.get("id", 0)),
-                56,
-            )
-            hdr.addWidget(avatar, alignment=Qt.AlignTop)
+        avatar = AvatarLabel(
+            _get_initials(user.get("full_name", ""), user.get("username", "")),
+            _avatar_color(user.get("id", 0)),
+            56,
+        )
+        hdr.addWidget(avatar, alignment=Qt.AlignTop)
 
-            name_col = QVBoxLayout()
-            name_col.setSpacing(2)
+        name_col = QVBoxLayout()
+        name_col.setSpacing(4)
 
-            name_lbl = QLabel(user.get("full_name") or user.get("username", ""))
-            name_lbl.setStyleSheet(
-                f"font-size: 20px; font-weight: bold; color: {TEXT_WHITE};"
-            )
-            name_col.addWidget(name_lbl)
+        name_lbl = QLabel(user.get("full_name") or user.get("username", ""))
+        name_lbl.setStyleSheet(f"font-size: 20px; font-weight: bold; color: {TEXT_WHITE}; border: none; background: transparent;")
+        name_col.addWidget(name_lbl)
 
-            role = user.get("role", "staff")
-            role_lbl = QLabel(_role_text(role))
-            role_lbl.setStyleSheet(f"font-size: 13px; color: {TEXT_MUTED};")
-            name_col.addWidget(role_lbl)
+        role = user.get("role", "staff")
+        role_lbl = QLabel(_role_text(role))
+        role_lbl.setStyleSheet(f"font-size: 13px; color: {TEXT_MUTED}; border: none; background: transparent;")
+        name_col.addWidget(role_lbl)
 
-            status_pill = QLabel("● Hoạt động")
-            status_pill.setStyleSheet(
-                f"font-size: 12px; font-weight: bold; color: {GREEN};"
-                f" border: 1px solid {GREEN}; border-radius: 10px; padding: 2px 10px;"
-            )
+        status_pill = QLabel("● Hoạt động")
+        status_pill.setStyleSheet(
+            f"font-size: 12px; font-weight: bold; color: {GREEN}; border: 1px solid {GREEN}; "
+            f"border-radius: 10px; padding: 2px 10px; background: transparent;"
+        )
+        name_col.addWidget(status_pill)
+        name_col.addStretch()
+        hdr.addLayout(name_col, stretch=1)
 
-            name_col.addWidget(status_pill)
-            name_col.addStretch()
-            hdr.addLayout(name_col, stretch=1)
+        btn_col = QVBoxLayout()
+        btn_col.setSpacing(6)
+        btn_col.setAlignment(Qt.AlignTop)
 
-            btn_col = QVBoxLayout()
-            btn_col.setSpacing(6)
-            btn_col.setAlignment(Qt.AlignTop)
+        btn_edit = QPushButton("✏   Sửa thông tin")
+        btn_edit.setObjectName("btnPrimary")
+        btn_edit.setFixedSize(150, 32)
+        btn_edit.clicked.connect(lambda: self._on_edit(user))
 
-            btn_edit = QPushButton("✏  Sửa thông tin")
-            btn_edit.setObjectName("btnPrimary")
-            btn_edit.setFixedSize(150, 32)
-            btn_edit.clicked.connect(lambda: self._on_edit(user))
+        btn_pw = QPushButton("🔑   Đổi mật khẩu")
+        btn_pw.setObjectName("btnWarning")
+        btn_pw.setFixedSize(150, 32)
+        btn_pw.clicked.connect(lambda: self._on_change_password(user))
 
-            btn_pw = QPushButton("🔑  Đổi mật khẩu")
-            btn_pw.setObjectName("btnWarning")
-            btn_pw.setFixedSize(150, 32)
-            btn_pw.clicked.connect(lambda: self._on_change_password(user))
+        btn_del = QPushButton("🗑   Xóa tài khoản")
+        btn_del.setObjectName("btnDanger")
+        btn_del.setFixedSize(150, 32)
+        btn_del.clicked.connect(lambda: self._on_delete(user))
 
-            btn_del = QPushButton("🗑  Xóa tài khoản")
-            btn_del.setObjectName("btnDanger")
-            btn_del.setFixedSize(150, 32)
-            btn_del.clicked.connect(lambda: self._on_delete(user))
+        btn_col.addWidget(btn_edit)
+        btn_col.addWidget(btn_pw)
+        btn_col.addWidget(btn_del)
+        hdr.addLayout(btn_col)
 
-            btn_col.addWidget(btn_edit)
-            btn_col.addWidget(btn_pw)
-            btn_col.addWidget(btn_del)
-            hdr.addLayout(btn_col)
+        layout.addWidget(header)
 
-            layout.addWidget(header)
+        # ── HÀNG 1: Ô số liệu thống kê (Tổng quét / Cảnh báo / Từ chối) ──
+        stat_w = QWidget()
+        stat_w.setStyleSheet(f"background: {BG_DARK}; border: none;")
+        stat_lay = QHBoxLayout(stat_w)
+        stat_lay.setContentsMargins(24, 6, 24, 6)
+        stat_lay.setSpacing(12)
+        
+        stats = user.get("stats", {})
+        stat_lay.addWidget(_StatCard(stats.get("total", 0), "Tổng quét", TEXT_WHITE), stretch=1)
+        stat_lay.addWidget(_StatCard(stats.get("warning", 0), "Cảnh báo", ORANGE), stretch=1)
+        stat_lay.addWidget(_StatCard(stats.get("denied", 0), "Từ chối", RED), stretch=1)
+        layout.addWidget(stat_w)
 
-            # ── HÀNG 1: Tổng quét | Cảnh báo | Từ chối (3 ô riêng biệt thẳng hàng) ──
-            stat_w = QWidget()
-            stat_w.setStyleSheet("background: transparent;")
-            stat_lay = QHBoxLayout(stat_w)
-            stat_lay.setContentsMargins(24, 6, 24, 6) # Căn lề 24px chuẩn theo Header
-            stat_lay.setSpacing(12) # Khoảng cách giữa các ô
-            stats = user.get("stats", {})
-            stat_lay.addWidget(_StatCard(stats.get("total", 0), "Tổng quét", TEXT_WHITE), stretch=1)
-            stat_lay.addWidget(_StatCard(stats.get("warning", 0), "Cảnh báo", ORANGE), stretch=1)
-            stat_lay.addWidget(_StatCard(stats.get("denied", 0), "Từ chối", RED), stretch=1)
-            stat_lay.setStretch(0, 1)
-            stat_lay.setStretch(1, 1)
-            stat_lay.setStretch(2, 1)
-            layout.addWidget(stat_w)
+        # ── HÀNG 2: Điện thoại | Ca làm việc (2 cột song song) ──
+        contact_w = QWidget()
+        contact_w.setStyleSheet(f"background: {BG_DARK}; border: none;")
+        contact_lay = QHBoxLayout(contact_w)
+        contact_lay.setContentsMargins(24, 6, 24, 6)
+        contact_lay.setSpacing(12)
+        
+        contact_lay.addWidget(_InfoField("Điện thoại", user.get("phone", "")), stretch=1)
+        contact_lay.addWidget(_InfoField("Ca làm việc", user.get("shift", "")), stretch=1)
+        layout.addWidget(contact_w)
 
-            # ── HÀNG 2: Điện thoại | Ca làm việc (2 ô riêng biệt thẳng hàng) ──
-            contact_w = QWidget()
-            contact_w.setStyleSheet("background: transparent;")
-            contact_lay = QHBoxLayout(contact_w)
-            contact_lay.setContentsMargins(24, 6, 24, 6)
-            contact_lay.setSpacing(12)
-            contact_lay.addWidget(_InfoField("Điện thoại", user.get("phone", "")), stretch=1)
-            contact_lay.addWidget(_InfoField("Ca làm việc", user.get("shift", "")), stretch=1)
-            contact_lay.setStretch(0, 1)
-            contact_lay.setStretch(1, 1)
-            layout.addWidget(contact_w)
+        # ── HÀNG 3: Email (1 cột trải dài toàn chiều ngang) ──
+        email_w = QWidget()
+        email_w.setStyleSheet(f"background: {BG_DARK}; border: none;")
+        email_lay = QHBoxLayout(email_w)
+        email_lay.setContentsMargins(24, 6, 24, 6)
+        email_lay.setSpacing(12)
+        
+        email_lay.addWidget(_InfoField("Email", user.get("email", "")), stretch=1)
+        layout.addWidget(email_w)
+        # ── HÀNG 3: Lịch sử quét gần đây ──
+        history_title = QLabel("LỊCH SỬ QUÉT GẦN ĐÂY")
+        history_title.setStyleSheet(
+            f"font-size: 11px; font-weight: bold; color: {TEXT_MUTED}; "
+            f"letter-spacing: 1px; padding: 16px 24px 8px 24px; border: none; background: transparent;"
+        )
+        layout.addWidget(history_title)
 
-            # ── HÀNG 3: Email (1 ô riêng biệt kéo dài toàn bộ chiều rộng) ──
-            email_w = QWidget()
-            email_w.setStyleSheet("background: transparent;")
-            email_lay = QHBoxLayout(email_w)
-            email_lay.setContentsMargins(24, 6, 24, 14) # Margin bottom rộng hơn chút tạo khoảng cách
-            email_lay.setSpacing(0)
-            email_field = _InfoField("Email", user.get("email", ""))
-            email_lay.addWidget(email_field)
-            email_lay.setStretch(0, 1)
-            layout.addWidget(email_w)
+        scroll_history = QScrollArea()
+        scroll_history.setWidgetResizable(True)
+        scroll_history.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        
+        history_container = QWidget()
+        history_container.setStyleSheet("background: transparent; border: none;")
+        history_layout = QVBoxLayout(history_container)
+        history_layout.setContentsMargins(24, 0, 24, 16)
+        history_layout.setSpacing(8)
 
-            # ── Lần quét gần nhất ──
-            scan_body = QWidget()
-            scan_body.setStyleSheet(f"background: {BG_DARK};")
-            sbv = QVBoxLayout(scan_body)
-            sbv.setContentsMargins(24, 14, 24, 14)
-            sbv.setSpacing(8)
+        scans = user.get("recent_scans", [])
+        if scans:
+            for s in scans:
+                row = _ScanRow(s.get("plate", ""), s.get("info", ""), s.get("time", ""), s.get("status", ""))
+                history_layout.addWidget(row)
+        else:
+            no_scan = QLabel("Chưa có dữ liệu lịch sử quét.")
+            no_scan.setStyleSheet(f"font-size: 13px; color: {TEXT_MUTED}; border: none; background: transparent;")
+            history_layout.addWidget(no_scan)
 
-            scan_title = QLabel("LẦN QUÉT GẦN NHẤT")
-            scan_title.setStyleSheet(
-                f"font-size: 10px; font-weight: bold; color: {TEXT_MUTED};"
-                f" letter-spacing: 1px;"
-            )
-            sbv.addWidget(scan_title)
+        history_layout.addStretch()
+        scroll_history.setWidget(history_container)
+        layout.addWidget(scroll_history, stretch=1)
 
-            recent_scans = user.get("recent_scans", [])
-            if recent_scans:
-                for scan in recent_scans:
-                    sbv.addWidget(_ScanRow(
-                        scan.get("plate", ""),
-                        scan.get("info", ""),
-                        scan.get("time", ""),
-                        scan.get("status", "THÔNG QUA"),
-                    ))
-            else:
-                no_scan = QLabel("Chưa có lần quét nào")
-                no_scan.setStyleSheet(f"font-size: 13px; color: {TEXT_MUTED};")
-                no_scan.setAlignment(Qt.AlignCenter)
-                sbv.addWidget(no_scan)
-
-            sbv.addStretch()
-
-            scan_scroll = QScrollArea()
-            scan_scroll.setWidgetResizable(True)
-            scan_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-            scan_scroll.setWidget(scan_body)
-            layout.addWidget(scan_scroll, stretch=1)
-
-    # ── Event handlers ───────────────────────────────────
-
-    def _on_search(self, text: str):
-            filtered = self._filter(text)
-            self._render_list(filtered)
-            if self._selected and not any(u["id"] == self._selected["id"] for u in filtered):
-                self._selected = None
-                self.stack.setCurrentIndex(0)
-
-    def _select_user(self, user: dict):
-        if not user:
-            return
-        self._selected = user
-        for row in self._rows:
-            row.set_selected(row.user["id"] == user["id"])
-        self._build_detail(user)
-        self.stack.setCurrentIndex(1)
+    # ── Callbacks Processing ─────────────────────────────
 
     def _on_add(self):
-        dlg = UserDialog(self)
-        if dlg.exec_() == QDialog.Accepted:
-            if self.on_add:
-                self.on_add(dlg.result_data)
+        dialog = UserDialog(self)
+        if dialog.exec_() == QDialog.Accepted and self.on_add:
+            self.on_add(dialog.result_data)
 
     def _on_edit(self, user: dict):
-        dlg = UserDialog(self, user_data=user)
-        if dlg.exec_() == QDialog.Accepted:
-            if self.on_edit:
-                self.on_edit(user["id"], dlg.result_data)
+        dialog = UserDialog(self, user)
+        if dialog.exec_() == QDialog.Accepted and self.on_edit:
+            self.on_edit(user["id"], dialog.result_data)
 
     def _on_change_password(self, user: dict):
-        dlg = ChangePasswordDialog(self, username=user.get("username", ""))
-        if dlg.exec_() == QDialog.Accepted:
-            if self.on_change_password:
-                self.on_change_password(user["id"], dlg.new_password)
+        dialog = ChangePasswordDialog(self, user.get("username", ""))
+        if dialog.exec_() == QDialog.Accepted and self.on_change_password:
+            self.on_change_password(user["id"], dialog.new_password)
 
+    # 🌟 Đstyle: Đã áp dụng Custom Confirm Dialog hình vuông đồng bộ tuyệt đối
     def _on_delete(self, user: dict):
-        reply = QMessageBox.question(
-            self,
-            "Xác nhận xóa",
-            f"Xóa người dùng '{user.get('username', '')}'?",
-            QMessageBox.Yes | QMessageBox.No,
-            QMessageBox.No,
+        dialog = CustomConfirmDialog(
+            self, 
+            "Xác nhận xóa", 
+            f"Xóa người dùng '{user.get('username', '')}'?"
         )
-        if reply == QMessageBox.Yes:
+        if dialog.exec_() == QDialog.Accepted:
             if self.on_delete:
                 self.on_delete(user["id"])
+
