@@ -1,0 +1,48 @@
+/* ===== INFO FRAME ===== */
+QFrame#info_frame {
+    background-color: white;
+    border: 2px solid #DDE3EA;
+    border-radius: 15px;
+    padding: 15px;
+}
+
+/* ===== BIỂN SỐ ===== */
+QLabel#plate_label {
+    background-color: #F5F7FA;
+    border-radius: 12px;
+    padding: 25px;
+    font-size: 28px;
+    font-weight: bold;
+    color: #111;
+}
+
+/* ===== NGÀY GIỜ ===== */
+QLabel#time_label {
+    background-color: #F5F7FA;
+    border-radius: 12px;
+    padding: 25px;
+    font-size: 22px;
+    font-weight: bold;
+    color: #111;
+}
+
+/* ===== CAMERA FRAME ===== */
+QFrame {
+    background-color: white;
+    border: 2px solid #DDE3EA;
+    border-radius: 15px;
+}
+
+/* ===== BUTTON ===== */
+QPushButton {
+    background-color: #2563EB;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+QPushButton:hover {
+    background-color: #1D4ED8;
+}
