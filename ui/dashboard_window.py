@@ -18,6 +18,7 @@ from PyQt5.QtWidgets import (
 )
 
 from .sidebar import Sidebar
+from .vehicles_window import VehiclesWindow
 
 
 class DashboardWindow(QMainWindow):
@@ -67,7 +68,8 @@ class DashboardWindow(QMainWindow):
         self.stack = QStackedWidget()
 
         self.stack.addWidget(self._create_dashboard_page())
-        self.stack.addWidget(self._create_simple_page("ENTRY WINDOW"))
+        self.vehicles_window = VehiclesWindow()
+        self.stack.addWidget(self.vehicles_window)
         self.stack.addWidget(self._create_simple_page("EXIT WINDOW"))
         self.stack.addWidget(self._create_simple_page("HISTORY WINDOW"))
 
