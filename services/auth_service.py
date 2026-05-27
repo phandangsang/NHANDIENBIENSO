@@ -8,20 +8,21 @@ def login(username: str, password: str) -> dict:
     if not username or not password:
         return {
             "success": False,
-            "message": "Vui long nhap day du tai khoan va mat khau.",
+            "message": "Vui lòng nhập đầy đủ tài khoản và mật khẩu.",
             "user": None,
         }
 
     user = find_by_username(username)
-    if not user or user.get("password") != password:
+
+    if not user or user.password != password:
         return {
             "success": False,
-            "message": "Sai ten dang nhap hoac mat khau.",
+            "message": "Sai tên đăng nhập hoặc mật khẩu.",
             "user": None,
         }
 
     return {
         "success": True,
-        "message": f"Xin chao {user.get('full_name') or user.get('username')}!",
+        "message": f"Xin chào {user.full_name or user.username}!",
         "user": user,
     }

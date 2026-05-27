@@ -6,6 +6,7 @@ from PyQt5.QtWidgets import (
 )
 
 from .sidebar import Sidebar
+from .user_window import UserPage
 
 
 class DashboardWindow(QMainWindow):
@@ -40,17 +41,24 @@ class DashboardWindow(QMainWindow):
         # Page 1 - Entry
         entry_page = self._create_simple_page("ENTRY WINDOW")
 
-        # Page 2 - Exit
-        exit_page = self._create_simple_page("EXIT WINDOW")
-
-        # Page 3 - History
+        # Page 2 - History
         history_page = self._create_simple_page("HISTORY WINDOW")
+
+        # Page 3 - User 
+        self.user_page = UserPage()
+
+        # Page 4 - Exit
+        exit_page = self._create_simple_page("EXIT WINDOW") 
+
+
+
 
         self.stack.addWidget(dashboard_page)
         self.stack.addWidget(entry_page)
-        self.stack.addWidget(exit_page)
+        self.stack.addWidget(self.user_page)
         self.stack.addWidget(history_page)
-
+        self.stack.addWidget(exit_page)
+        
         # ===== connect sidebar =====
         self.sidebar.pageChanged.connect(self.change_page)
 
@@ -61,9 +69,10 @@ class DashboardWindow(QMainWindow):
     def _create_dashboard_page(self):
         page = QWidget()
         layout = QVBoxLayout(page)
+        user = self.user
 
-        full_name = self.user.get("full_name") or self.user.get("username") or "User"
-        role = self.user.get("role") or "staff"
+        full_name = getattr(user, "full_name", None) or getattr(user, "username", "User")
+        role = getattr(user, "role", "staff")
 
         title = QLabel("DASHBOARD")
         title.setStyleSheet("font-size: 28px; font-weight: bold;")

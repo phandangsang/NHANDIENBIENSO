@@ -56,3 +56,8 @@ CREATE TABLE IF NOT EXISTS `images` (
 INSERT INTO `user` (`username`, `password`, `full_name`, `role`)
 VALUES ('admin', 'admin123', 'Quan tri vien', 'admin')
 ON DUPLICATE KEY UPDATE `username` = `username`;
+
+ALTER TABLE `user`
+ADD COLUMN `online` TINYINT(1) DEFAULT 0,
+ADD COLUMN `last_seen` DATETIME NULL,
+ADD COLUMN `notif` INT DEFAULT 0;

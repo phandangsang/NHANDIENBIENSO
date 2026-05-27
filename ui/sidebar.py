@@ -35,16 +35,19 @@ class Sidebar(QWidget):
         dashboardBtn = QPushButton("🏠 Bảng điều khiển")
         vehiclesBtn = QPushButton("🚗 Phương tiện")
         usersBtn = QPushButton("👤 Người dùng")
+        historyBtn = QPushButton("📜 Lịch sử")
         settingsBtn = QPushButton("⚙ Cài đặt")
 
         dashboardBtn.clicked.connect(lambda: self.pageChanged.emit(0))
         vehiclesBtn.clicked.connect(lambda: self.pageChanged.emit(1))
         usersBtn.clicked.connect(lambda: self.pageChanged.emit(2))
-        settingsBtn.clicked.connect(lambda: self.pageChanged.emit(3))
+        historyBtn.clicked.connect(lambda: self.pageChanged.emit(3))
+        settingsBtn.clicked.connect(lambda: self.pageChanged.emit(4))
 
         layout.addWidget(dashboardBtn)
         layout.addWidget(vehiclesBtn)
         layout.addWidget(usersBtn)
+        layout.addWidget(historyBtn)
         layout.addWidget(settingsBtn)
 
         layout.addStretch()
