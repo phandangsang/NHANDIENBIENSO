@@ -1,0 +1,127 @@
+QWidget {
+    background-color: #030a1c;
+    color: #ffffff;
+    font-family: "Segoe UI", Arial, sans-serif;
+}
+
+
+QLabel#title {
+    color: #ffffff !important;
+    font-size: 18px;
+    font-weight: bold;
+    background-color: transparent !important;
+}
+
+
+QLabel#totalBadge {
+    background-color: #102a45;
+    color: #00e5ff;
+    font-size: 11px;
+    font-weight: bold;
+    padding: 2px 10px;
+    border-radius: 10px;
+}
+
+
+QFrame#chartBox {
+    background-color: #061735;
+    border: 1px solid #0f2d59;
+    border-radius: 6px;
+}
+QLabel#chartTitle {
+    color: #557cb0;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    background: transparent;
+    padding: 2px 0px;
+}
+
+QLineEdit {
+    background-color: #06152d;
+    border: 1px solid #103161;
+    border-radius: 4px;
+    color: #ffffff;
+    padding: 6px 12px;
+}
+
+QComboBox {
+    combobox-popup: 0; 
+    background-color: #06152d;
+    border: 1px solid #103161;
+    border-radius: 4px;
+    color: #ffffff;
+    padding: 6px 30px 6px 12px; 
+    min-width: 155px;
+}
+
+
+QComboBox::drop-down {
+    subcontrol-origin: padding;
+    subcontrol-position: top right;
+    width: 25px;
+    border: none;
+    background: transparent;
+}
+
+QComboBox::down-arrow {
+    image: none; 
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 5px solid #00e5ff; 
+    width: 0;
+    height: 0;
+    position: relative;
+    right: 6px;
+}
+
+
+QComboBox::down-arrow:hover {
+    border-top: 5px solid #ffffff; 
+}
+
+QComboBox QAbstractItemView {
+    background-color: #06152d;   
+    border: 1px solid #103161;    
+    selection-background-color: #0b2752; 
+    selection-color: #00e5ff;       
+    color: #ffffff;               
+    outline: none;
+}
+QComboBox QAbstractItemView::item {
+    padding: 6px 10px;
+    background-color: #06152d;
+    color: #ffffff;
+}
+
+QTableWidget {
+    background-color: #051228;
+    border: 1px solid #0c264d;
+    border-radius: 4px;
+    gridline-color: #0c2347;
+    color: #ffffff;
+}
+QHeaderView::section {
+    background-color: #081a38;
+    color: #4f73a5;
+    padding: 8px;
+    font-weight: bold;
+    border: none;
+    font-size: 11px;
+}
+QTableWidget::item {
+    padding: 6px;
+    border-bottom: 1px solid #0a1f3f;
+}
+QTableWidget::item:selected {
+    background-color: #0b2752;
+}
+
+QPushButton#exportBtn { 
+    background-color: #092142; 
+    color: #00e5ff; 
+    border: 1px solid #10366b; 
+    border-radius: 4px; 
+    padding: 5px 12px; 
+    font-size: 12px; 
+}
