@@ -1,50 +1,49 @@
 from pathlib import Path
-from PyQt5.QtWidgets import *
-from PyQt5.QtCore import *
+
+from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtWidgets import QLabel, QPushButton, QVBoxLayout, QWidget
 
 
 class Sidebar(QWidget):
-
     pageChanged = pyqtSignal(int)
 
     def __init__(self):
         super().__init__()
-
         self.setObjectName("sidebar")
 
         css_path = Path(__file__).resolve().parent / "style" / "sidebar.css"
         try:
-            with open(css_path, "r", encoding="utf-8") as f:
-                self.setStyleSheet(f.read())
+            self.setStyleSheet(css_path.read_text(encoding="utf-8"))
         except FileNotFoundError:
             print(f"Khong tim thay file CSS: {css_path}")
 
-        self.initUI()
+        self._build_ui()
 
-    def initUI(self):
+    def _build_ui(self) -> None:
         layout = QVBoxLayout(self)
-
-        layout.setContentsMargins(20, 20, 20, 20)
-        layout.setSpacing(15)
+        layout.setContentsMargins(18, 18, 18, 18)
+        layout.setSpacing(12)
 
         title = QLabel("LPR Admin")
+        title.setObjectName("sidebarTitle")
         layout.addWidget(title)
+        layout.addSpacing(10)
 
-        layout.addSpacing(20)
+        btn_dashboard = QPushButton("Bang dieu khien")
+        btn_vehicles = QPushButton("Danh sach xe")
+        btn_users = QPushButton("Nguoi dung")
+        btn_history = QPushButton("Lich su")
+        btn_settings = QPushButton("Cai dat")
 
-        dashboardBtn = QPushButton("🏠 Bảng điều khiển")
-        vehiclesBtn = QPushButton("🚗 Phương tiện")
-        usersBtn = QPushButton("👤 Người dùng")
-        settingsBtn = QPushButton("⚙ Cài đặt")
+        btn_dashboard.clicked.connect(lambda: self.pageChanged.emit(0))
+        btn_vehicles.clicked.connect(lambda: self.pageChanged.emit(1))
+        btn_users.clicked.connect(lambda: self.pageChanged.emit(2))
+        btn_history.clicked.connect(lambda: self.pageChanged.emit(3))
+        btn_settings.clicked.connect(lambda: self.pageChanged.emit(4))
 
-        dashboardBtn.clicked.connect(lambda: self.pageChanged.emit(0))
-        vehiclesBtn.clicked.connect(lambda: self.pageChanged.emit(1))
-        usersBtn.clicked.connect(lambda: self.pageChanged.emit(2))
-        settingsBtn.clicked.connect(lambda: self.pageChanged.emit(3))
-
-        layout.addWidget(dashboardBtn)
-        layout.addWidget(vehiclesBtn)
-        layout.addWidget(usersBtn)
-        layout.addWidget(settingsBtn)
-
+        layout.addWidget(btn_dashboard)
+        layout.addWidget(btn_vehicles)
+        layout.addWidget(btn_users)
+        layout.addWidget(btn_history)
+        layout.addWidget(btn_settings)
         layout.addStretch()

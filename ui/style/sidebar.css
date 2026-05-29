@@ -1,29 +1,24 @@
 #sidebar {
-    background-color: rgb(8, 8, 8);
-    border-right: 1px solid #346399;
+    background-color: #eef2ff; /* separate from white dashboard */
+    border-right: 1px solid #e2e8f0;
+}
+
+QLabel#sidebarTitle {
+    font-size: 28px;
+    font-weight: bold;
+    color: #1d4ed8;
 }
 
 QPushButton {
     background-color: #2563eb;
+    color: white;
     border: none;
-    padding: 12px;
+    padding: 12px 14px;
     text-align: left;
     font-size: 15px;
     border-radius: 10px;
 }
 
 QPushButton:hover {
-    background-color: #152253;
-}
-
-#activeBtn {
-    background-color: #cf0f19;
-    color: #2D5BFF;
-    font-weight: bold;
-}
-
-QLabel {
-    font-size: 28px;
-    font-weight: bold;
-    color: #1D4ED8;
+    background-color: #1d4ed8;
 }
