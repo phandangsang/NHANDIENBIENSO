@@ -24,8 +24,16 @@ if __name__ == "__main__":
 
     def open_dashboard(user: dict) -> None:
         app.dashboard_window = DashboardWindow(user)
+        app.dashboard_window.logout_requested.connect(logout)
         app.dashboard_window.show()
         login_window.hide()
+
+    def logout() -> None:
+        if app.dashboard_window is not None:
+            app.dashboard_window.close()
+            app.dashboard_window = None
+        login_window.reset_form()
+        login_window.show()
 
     login_window.login_success.connect(open_dashboard)
     login_window.show()
