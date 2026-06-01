@@ -380,8 +380,7 @@ class UserPage(QWidget):
         for row, user in enumerate(self._visible_users):
             name = user.get("full_name") or user.get("username") or "Nguoi dung"
             role = user.get("role") or "staff"
-            online = "online" if user.get("online") else "offline"
-            item = QListWidgetItem(f"{name}\n{user.get('username', '')} | {role} | {online}")
+            item = QListWidgetItem(f"{name}\n{user.get('username', '')} | {role}")
             item.setData(Qt.UserRole, user.get("id"))
             item.setSizeHint(item.sizeHint())
             self.user_list.addItem(item)

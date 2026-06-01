@@ -18,6 +18,7 @@ from PyQt5.QtWidgets import (
     QWidget,
 )
 
+from .exit_window import ExitWindow
 from .sidebar import Sidebar
 from .user_window import UserPage
 from .vehicles_window import VehiclesWindow
@@ -80,14 +81,16 @@ class DashboardWindow(QMainWindow):
         self.stack = QStackedWidget()
 
         self.page_dashboard = self._create_dashboard_page()
+        self.page_exit_scan = ExitWindow()
         self.page_vehicles = VehiclesWindow()
         self.page_users = UserPage()
         self._setup_user_page()
 
-        # Keep indexes aligned with ui/sidebar.py (0..2)
+        # Keep indexes aligned with ui/sidebar.py (0..3)
         self.stack.addWidget(self.page_dashboard)  # 0
-        self.stack.addWidget(self.page_vehicles)   # 1
-        self.stack.addWidget(self.page_users)      # 2
+        self.stack.addWidget(self.page_exit_scan)  # 1
+        self.stack.addWidget(self.page_vehicles)   # 2
+        self.stack.addWidget(self.page_users)      # 3
 
         self.sidebar.pageChanged.connect(self.change_page)
         self.sidebar.logoutRequested.connect(self.logout_requested.emit)
@@ -202,6 +205,7 @@ class DashboardWindow(QMainWindow):
             ret1, frame1 = self.cap1.read()
             if ret1 and frame1 is not None:
                 self.show_frame(frame1, self.camera_label_1)
+                self.page_exit_scan.update_camera_frame(frame1)
 
         if self.cap2 is not None and self.cap2.isOpened():
             ret2, frame2 = self.cap2.read()

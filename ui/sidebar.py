@@ -31,17 +31,20 @@ class Sidebar(QWidget):
         layout.addSpacing(10)
 
         btn_dashboard = QPushButton("Bang dieu khien")
+        btn_exit_scan = QPushButton("Quet xe ra")
         btn_vehicles = QPushButton("Danh sach xe")
         btn_users = QPushButton("Nguoi dung")
         btn_logout = QPushButton("Dang xuat")
         btn_logout.setObjectName("logoutButton")
 
         btn_dashboard.clicked.connect(lambda: self.pageChanged.emit(0))
-        btn_vehicles.clicked.connect(lambda: self.pageChanged.emit(1))
-        btn_users.clicked.connect(lambda: self.pageChanged.emit(2))
+        btn_exit_scan.clicked.connect(lambda: self.pageChanged.emit(1))
+        btn_vehicles.clicked.connect(lambda: self.pageChanged.emit(2))
+        btn_users.clicked.connect(lambda: self.pageChanged.emit(3))
         btn_logout.clicked.connect(self.logoutRequested.emit)
 
         layout.addWidget(btn_dashboard)
+        layout.addWidget(btn_exit_scan)
         layout.addWidget(btn_vehicles)
         layout.addWidget(btn_users)
         layout.addStretch()
