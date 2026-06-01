@@ -276,15 +276,7 @@ class UserPage(QWidget):
         header.addWidget(self.role_label, alignment=Qt.AlignTop)
         content_layout.addLayout(header)
 
-        metric_grid = QGridLayout()
-        metric_grid.setSpacing(12)
-        self.total_metric, self.total_number = self._create_metric("Tong quet")
-        self.warning_metric, self.warning_number = self._create_metric("Canh bao")
-        self.denied_metric, self.denied_number = self._create_metric("Tu choi")
-        metric_grid.addWidget(self.total_metric, 0, 0)
-        metric_grid.addWidget(self.warning_metric, 0, 1)
-        metric_grid.addWidget(self.denied_metric, 0, 2)
-        content_layout.addLayout(metric_grid)
+
 
         info_card = QFrame()
         info_card.setObjectName("Card")
@@ -326,24 +318,11 @@ class UserPage(QWidget):
         root.addWidget(side_panel)
         root.addWidget(content_panel, 1)
 
-    def _create_metric(self, caption):
-        frame = QFrame()
-        frame.setObjectName("Card")
-        layout = QVBoxLayout(frame)
-        layout.setContentsMargins(16, 14, 16, 14)
-        number = QLabel("0")
-        number.setObjectName("MetricNumber")
-        number.setAlignment(Qt.AlignCenter)
-        label = QLabel(caption.upper())
-        label.setObjectName("MetricCaption")
-        label.setAlignment(Qt.AlignCenter)
-        layout.addWidget(number)
-        layout.addWidget(label)
-        return frame, number
+
 
     def _add_info_row(self, layout, row, label_text):
         label = QLabel(label_text.upper())
-        label.setObjectName("MetricCaption")
+        label.setObjectName("InfoLabel")
         value = QLabel("-")
         value.setObjectName("Muted")
         value.setTextInteractionFlags(Qt.TextSelectableByMouse)
@@ -399,10 +378,7 @@ class UserPage(QWidget):
         self.username_label.setText(f"Username: {_text(user.get('username'))}")
         self.role_label.setText((_text(user.get("role"), "staff")).upper())
 
-        stats = user.get("stats") or {}
-        self.total_number.setText(str(stats.get("total", stats.get("total_scans", 0))))
-        self.warning_number.setText(str(stats.get("warning", 0)))
-        self.denied_number.setText(str(stats.get("denied", 0)))
+    
 
         self.email_value.setText(_text(user.get("email")))
         self.phone_value.setText(_text(user.get("phone")))
@@ -430,9 +406,6 @@ class UserPage(QWidget):
         self.name_label.setText("Chua chon nguoi dung")
         self.username_label.setText("Chon mot nguoi dung o danh sach ben trai")
         self.role_label.setText("-")
-        self.total_number.setText("0")
-        self.warning_number.setText("0")
-        self.denied_number.setText("0")
         self.email_value.setText("-")
         self.phone_value.setText("-")
         self.shift_value.setText("-")

@@ -1,5 +1,5 @@
 import os
-import sys
+
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
     QWidget,
@@ -12,13 +12,10 @@ from PyQt5.QtWidgets import (
     QTableWidget,
     QTableWidgetItem,
     QHeaderView,
-    QFrame
+    
 )
 from PyQt5.QtGui import QColor, QFont
-
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.figure import Figure
-
+ 
 from database.db import fetch_all
 
 
@@ -55,7 +52,7 @@ class VehiclesWindow(QWidget):
     
         title_layout = QHBoxLayout()
         
-        title = QLabel("Danh sách xe đã quét")
+        title = QLabel("Danh sách xe")
         title.setObjectName("title")
 
         self.total_label = QLabel("0 lượt")
@@ -73,28 +70,7 @@ class VehiclesWindow(QWidget):
         root.addLayout(title_layout)
 
       
-        chart = QFrame()
-        chart.setObjectName("chartBox")
-        chart.setFixedHeight(180)  
         
-        chart_layout = QVBoxLayout(chart)
-        chart_layout.setContentsMargins(20, 12, 20, 12)
-        chart_layout.setSpacing(8)
-
-        chart_title = QLabel("SỐ LƯỢNG XE THEO GIỜ")
-        chart_title.setObjectName("chartTitle")
-        chart_layout.addWidget(chart_title)
-
-        self.figure = Figure(facecolor='#061735')
-        self.figure.patch.set_facecolor('#061735') 
-        
-        self.canvas = FigureCanvas(self.figure)
-        self.canvas.setStyleSheet("background: transparent;") 
-        chart_layout.addWidget(self.canvas)
-
-        root.addWidget(chart)
-
-       
         filter_layout = QHBoxLayout()
 
         self.search_input = QLineEdit()
@@ -214,7 +190,7 @@ class VehiclesWindow(QWidget):
 
         sql += " ORDER BY p.id DESC"
 
-        real_hourly_data = {}
+       
         rows = []
         try:
             rows = fetch_all(sql, tuple(params))
@@ -277,44 +253,6 @@ class VehiclesWindow(QWidget):
 
                 self.table.setItem(row_index, col, item)
 
-            try:
-                hour_int = int(str(row["entry_time"]).split()[1].split(':')[0])
-                real_hourly_data[hour_int] = real_hourly_data.get(hour_int, 0) + 1
-            except:
-                pass
-
-        self.draw_chart(real_hourly_data)
-
-    def draw_chart(self, data_dict):
-        self.figure.clear()
-        self.figure.patch.set_facecolor('#061735')
         
-        ax = self.figure.add_subplot(111)
-        ax.set_facecolor('#061735')
 
-        hours_range = list(range(12, 24))
-        counts = [data_dict.get(h, 0) for h in hours_range]
-
-        bars = ax.bar(hours_range, counts, color='#bf263c', width=0.45, edgecolor='#e63950', linewidth=1.2)
-        ax.set_xticks(hours_range)
-        ax.set_xticklabels([f"{h}h" for h in hours_range])
-
-        ax.tick_params(colors='#6185b3', labelsize=9, pad=4)
-        ax.spines['bottom'].set_color('#163d70')
-        ax.spines['left'].set_color('#163d70')
-        ax.spines['top'].set_visible(False)
-        ax.spines['right'].set_visible(False)
-        
-        ax.grid(axis='y', linestyle='--', alpha=0.15, color='#6185b3')
-
-        for bar in bars:
-            height = bar.get_height()
-            if height > 0:
-                ax.annotate(f'{height}',
-                            xy=(bar.get_x() + bar.get_width() / 2, height),
-                            xytext=(0, 3),  
-                            textcoords="offset points",
-                            ha='center', va='bottom', color='#ffffff', fontsize=8, fontweight='bold')
-                            
-        self.figure.subplots_adjust(left=0.06, right=0.96, top=0.85, bottom=0.20)
-        self.canvas.draw()
+   
