@@ -190,6 +190,7 @@ class UserPage(QWidget):
         self._users = []
         self._visible_users = []
         self._selected = None
+        self._can_manage_users = True
 
         self.on_add = None
         self.on_edit = None
@@ -204,6 +205,14 @@ class UserPage(QWidget):
         self.on_edit = on_edit
         self.on_delete = on_delete
         self.on_change_password = on_change_password
+
+    def set_permissions(self, *, can_manage_users: bool):
+        self._can_manage_users = can_manage_users
+        self.add_button.setVisible(can_manage_users)
+        self.edit_button.setVisible(can_manage_users)
+        self.password_button.setVisible(can_manage_users)
+        self.delete_button.setVisible(can_manage_users)
+        self._set_actions_enabled(self._selected is not None)
 
     def load_users(self, users):
         selected_id = self._selected.get("id") if self._selected else None
@@ -250,10 +259,10 @@ class UserPage(QWidget):
         self.user_list.currentRowChanged.connect(self._handle_row_changed)
         side_layout.addWidget(self.user_list, 1)
 
-        add_button = QPushButton("+ Them nguoi dung")
-        add_button.setObjectName("PrimaryButton")
-        add_button.clicked.connect(self._open_add_dialog)
-        side_layout.addWidget(add_button)
+        self.add_button = QPushButton("+ Them nguoi dung")
+        self.add_button.setObjectName("PrimaryButton")
+        self.add_button.clicked.connect(self._open_add_dialog)
+        side_layout.addWidget(self.add_button)
 
         content_panel = QFrame()
         content_panel.setObjectName("ContentPanel")
@@ -442,31 +451,34 @@ class UserPage(QWidget):
         self._set_actions_enabled(False)
 
     def _set_actions_enabled(self, enabled):
-        self.edit_button.setEnabled(enabled)
-        self.password_button.setEnabled(enabled)
-        self.delete_button.setEnabled(enabled)
+        allowed = enabled and self._can_manage_users
+        self.edit_button.setEnabled(allowed)
+        self.password_button.setEnabled(allowed)
+        self.delete_button.setEnabled(allowed)
 
     def _open_add_dialog(self):
+        if not self._can_manage_users:
+            return
         dialog = UserDialog(self)
         if dialog.exec_() == QDialog.Accepted and self.on_add:
             self.on_add(dialog.result_data)
 
     def _open_edit_dialog(self):
-        if not self._selected:
+        if not self._selected or not self._can_manage_users:
             return
         dialog = UserDialog(self, self._selected)
         if dialog.exec_() == QDialog.Accepted and self.on_edit:
             self.on_edit(self._selected.get("id"), dialog.result_data)
 
     def _open_password_dialog(self):
-        if not self._selected:
+        if not self._selected or not self._can_manage_users:
             return
         dialog = ChangePasswordDialog(self, self._selected.get("username", ""))
         if dialog.exec_() == QDialog.Accepted and self.on_change_password:
             self.on_change_password(self._selected.get("id"), dialog.new_password)
 
     def _delete_selected(self):
-        if not self._selected or not self.on_delete:
+        if not self._selected or not self.on_delete or not self._can_manage_users:
             return
 
         username = self._selected.get("username", "")
