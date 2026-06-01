@@ -1,0 +1,197 @@
+#UserPage,
+#UserPage QFrame,
+#UserPage QWidget {
+    background-color: #07111f;
+    color: #e6f3ff;
+    font-family: Segoe UI;
+    font-size: 14px;
+}
+
+#UserPage #SidePanel {
+    background-color: #0b1d33;
+    border-right: 1px solid #1b4d78;
+}
+
+#UserPage #ContentPanel {
+    background-color: #07111f;
+}
+
+#UserPage #Card {
+    background-color: #102846;
+    border: 1px solid #245d8c;
+    border-radius: 8px;
+}
+
+#UserPage QLabel {
+    background-color: transparent;
+    color: #d8ebff;
+    border: none;
+}
+
+#UserPage #PageTitle {
+    color: #ffffff;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+#UserPage #Name {
+    color: #ffffff;
+    font-size: 26px;
+    font-weight: 800;
+}
+
+#UserPage #Muted {
+    color: #9ec2df;
+    font-size: 14px;
+}
+
+#UserPage #RolePill {
+    background-color: #063f5f;
+    color: #35d7ff;
+    border: 1px solid #0a86bd;
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+#UserPage #MetricNumber {
+    color: #20d4ff;
+    font-size: 28px;
+    font-weight: 800;
+}
+
+#UserPage #MetricCaption {
+    color: #9ec2df;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0px;
+}
+
+#UserPage QLineEdit,
+#UserPage QComboBox {
+    background-color: #0f2742;
+    color: #ffffff;
+    border: 1px solid #2d6798;
+    border-radius: 8px;
+    padding: 10px 12px;
+    selection-background-color: #00bdf2;
+}
+
+#UserPage QLineEdit:focus,
+#UserPage QComboBox:focus {
+    border: 1px solid #22d3ff;
+}
+
+#UserPage QPushButton {
+    min-height: 36px;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-weight: 800;
+}
+
+#UserPage #PrimaryButton {
+    background-color: #16c7f3;
+    color: #06101c;
+    border: 1px solid #16c7f3;
+}
+
+#UserPage #PrimaryButton:hover {
+    background-color: #40d6ff;
+}
+
+#UserPage #GhostButton {
+    background-color: #0d223d;
+    color: #34d7ff;
+    border: 1px solid #1486b8;
+}
+
+#UserPage #GhostButton:hover {
+    background-color: #123154;
+}
+
+#UserPage #DangerButton {
+    background-color: #32131e;
+    color: #ff6470;
+    border: 1px solid #a02b3b;
+}
+
+#UserPage #DangerButton:hover {
+    background-color: #451826;
+}
+
+#UserPage QListWidget {
+    background-color: transparent;
+    border: none;
+    outline: none;
+}
+
+#UserPage QListWidget::item {
+    background-color: #102846;
+    color: #e6f3ff;
+    border: 1px solid #1f517d;
+    border-radius: 8px;
+    margin: 5px 0;
+    padding: 12px;
+}
+
+#UserPage QListWidget::item:selected {
+    background-color: #16466d;
+    color: #ffffff;
+    border: 1px solid #22d3ff;
+}
+
+#UserPage QListWidget::item:hover {
+    background-color: #143a5f;
+}
+
+#UserDialog {
+    background-color: #07111f;
+    color: #e6f3ff;
+    font-family: Segoe UI;
+}
+
+#UserDialog QLabel {
+    background-color: transparent;
+    color: #d8ebff;
+    border: none;
+}
+
+#UserDialog #PageTitle {
+    color: #ffffff;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+#UserDialog QLineEdit,
+#UserDialog QComboBox {
+    background-color: #0f2742;
+    color: #ffffff;
+    border: 1px solid #2d6798;
+    border-radius: 8px;
+    padding: 10px 12px;
+}
+
+#UserDialog QLineEdit:focus,
+#UserDialog QComboBox:focus {
+    border: 1px solid #22d3ff;
+}
+
+#UserDialog QPushButton {
+    min-height: 34px;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-weight: 800;
+}
+
+#UserDialog QPushButton {
+    background-color: #16c7f3;
+    color: #06101c;
+    border: 1px solid #16c7f3;
+}
+
+#UserDialog #GhostButton {
+    background-color: #0d223d;
+    color: #34d7ff;
+    border: 1px solid #1486b8;
+}

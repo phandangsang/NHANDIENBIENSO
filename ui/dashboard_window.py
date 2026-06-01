@@ -11,6 +11,7 @@ from PyQt5.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QMainWindow,
+    QMessageBox,
     QPushButton,
     QStackedWidget,
     QVBoxLayout,
@@ -20,6 +21,13 @@ from PyQt5.QtWidgets import (
 from .sidebar import Sidebar
 from .user_window import UserPage
 from .vehicles_window import VehiclesWindow
+from models.user_model import (
+    create_user,
+    delete_user,
+    list_users,
+    update_password,
+    update_user,
+)
 
 
 class DashboardWindow(QMainWindow):
@@ -74,6 +82,7 @@ class DashboardWindow(QMainWindow):
         self.page_dashboard = self._create_dashboard_page()
         self.page_vehicles = VehiclesWindow()
         self.page_users = UserPage()
+        self._setup_user_page()
         self.page_history = self._create_simple_page("HISTORY")
         self.page_settings = self._create_simple_page("SETTINGS")
 
@@ -247,3 +256,64 @@ class DashboardWindow(QMainWindow):
 
     def change_page(self, index: int) -> None:
         self.stack.setCurrentIndex(index)
+
+    def _setup_user_page(self) -> None:
+        self.page_users.set_callbacks(
+            on_add=self._add_user,
+            on_edit=self._edit_user,
+            on_delete=self._delete_user,
+            on_change_password=self._change_user_password,
+        )
+        self._reload_users()
+
+    def _reload_users(self) -> None:
+        try:
+            self.page_users.load_users(list_users())
+        except Exception as exc:
+            print(f"Load users error: {exc}")
+
+    def _add_user(self, data: dict) -> None:
+        try:
+            create_user(
+                username=data.get("username", ""),
+                password=data.get("password", ""),
+                full_name=data.get("full_name", ""),
+                role=data.get("role", "staff"),
+            )
+            self._reload_users()
+            QMessageBox.information(self, "Thanh cong", "Da them nguoi dung moi.")
+        except Exception as exc:
+            print(f"Add user error: {exc}")
+            if "Duplicate entry" in str(exc) and "uq_user_username" in str(exc):
+                QMessageBox.warning(
+                    self,
+                    "Them nguoi dung that bai",
+                    "Ten dang nhap nay da ton tai. Vui long nhap username khac.",
+                )
+            else:
+                QMessageBox.warning(
+                    self,
+                    "Them nguoi dung that bai",
+                    f"Khong the them nguoi dung.\nLoi: {exc}",
+                )
+
+    def _edit_user(self, user_id: int, data: dict) -> None:
+        try:
+            updated_user = update_user(user_id, data)
+            self.page_users.refresh_user(updated_user)
+        except Exception as exc:
+            print(f"Edit user error: {exc}")
+
+    def _delete_user(self, user_id: int) -> None:
+        try:
+            delete_user(user_id)
+            self.page_users.remove_user(user_id)
+        except Exception as exc:
+            print(f"Delete user error: {exc}")
+
+    def _change_user_password(self, user_id: int, password: str) -> None:
+        try:
+            updated_user = update_password(user_id, password)
+            self.page_users.refresh_user(updated_user)
+        except Exception as exc:
+            print(f"Change password error: {exc}")
