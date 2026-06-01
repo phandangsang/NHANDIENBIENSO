@@ -1,0 +1,115 @@
+#ExitWindow,
+#ExitWindow QWidget {
+    background-color: #f4f7fb;
+    color: #111827;
+    font-family: Segoe UI;
+    font-size: 14px;
+}
+
+#ExitWindow #PageTitle {
+    background-color: transparent;
+    color: #0f172a;
+    border: none;
+    font-size: 24px;
+    font-weight: 800;
+}
+
+#ExitWindow #SectionTitle {
+    background-color: transparent;
+    color: #0f172a;
+    border: none;
+    font-size: 16px;
+    font-weight: 800;
+}
+
+#ExitWindow #CompareCard {
+    background-color: #ffffff;
+    border: 1px solid #dbe4ef;
+    border-radius: 12px;
+}
+
+#ExitWindow #ExitCameraPreview {
+    background-color: #0f172a;
+    color: #e5e7eb;
+    border: 1px solid #1e293b;
+    border-radius: 12px;
+    font-size: 16px;
+}
+
+#ExitWindow #EntryImagePreview {
+    background-color: #f8fafc;
+    color: #475569;
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    font-size: 16px;
+}
+
+#ExitWindow QLineEdit {
+    background-color: #ffffff;
+    color: #111827;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 15px;
+}
+
+#ExitWindow QLineEdit:focus {
+    border: 2px solid #2563eb;
+}
+
+#ExitWindow #info_frame {
+    background-color: #ffffff;
+    border: 1px solid #dbe4ef;
+    border-radius: 12px;
+    padding: 14px;
+}
+
+#ExitWindow #plate_label {
+    background-color: #eef6ff;
+    color: #0f172a;
+    border: 1px solid #c7ddff;
+    border-radius: 10px;
+    padding: 18px;
+    font-size: 26px;
+    font-weight: 800;
+}
+
+#ExitWindow #time_label {
+    background-color: #ecfdf5;
+    color: #065f46;
+    border: 1px solid #bbf7d0;
+    border-radius: 10px;
+    padding: 18px;
+    font-size: 18px;
+    font-weight: 800;
+}
+
+#ExitWindow QPushButton {
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 800;
+}
+
+#ExitWindow #PrimaryButton {
+    background-color: #2563eb;
+    color: #ffffff;
+}
+
+#ExitWindow #PrimaryButton:hover {
+    background-color: #1d4ed8;
+}
+
+#ExitWindow #ConfirmButton {
+    background-color: #059669;
+    color: #ffffff;
+}
+
+#ExitWindow #ConfirmButton:hover {
+    background-color: #047857;
+}
+
+#ExitWindow QPushButton:disabled {
+    background-color: #cbd5e1;
+    color: #64748b;
+}
