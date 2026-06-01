@@ -55,17 +55,10 @@
     font-weight: 800;
 }
 
-#UserPage #MetricNumber {
-    color: #20d4ff;
-    font-size: 28px;
-    font-weight: 800;
-}
-
-#UserPage #MetricCaption {
+#UserPage #InfoLabel {
     color: #9ec2df;
     font-size: 12px;
     font-weight: 700;
-    letter-spacing: 0px;
 }
 
 #UserPage QLineEdit,
