@@ -6,6 +6,7 @@ from PyQt5.QtWidgets import QLabel, QPushButton, QVBoxLayout, QWidget
 
 class Sidebar(QWidget):
     pageChanged = pyqtSignal(int)
+    logoutRequested = pyqtSignal()
 
     def __init__(self):
         super().__init__()
@@ -34,12 +35,15 @@ class Sidebar(QWidget):
         btn_users = QPushButton("Nguoi dung")
         btn_history = QPushButton("Lich su")
         btn_settings = QPushButton("Cai dat")
+        btn_logout = QPushButton("Dang xuat")
+        btn_logout.setObjectName("logoutButton")
 
         btn_dashboard.clicked.connect(lambda: self.pageChanged.emit(0))
         btn_vehicles.clicked.connect(lambda: self.pageChanged.emit(1))
         btn_users.clicked.connect(lambda: self.pageChanged.emit(2))
         btn_history.clicked.connect(lambda: self.pageChanged.emit(3))
         btn_settings.clicked.connect(lambda: self.pageChanged.emit(4))
+        btn_logout.clicked.connect(self.logoutRequested.emit)
 
         layout.addWidget(btn_dashboard)
         layout.addWidget(btn_vehicles)
@@ -47,3 +51,4 @@ class Sidebar(QWidget):
         layout.addWidget(btn_history)
         layout.addWidget(btn_settings)
         layout.addStretch()
+        layout.addWidget(btn_logout)

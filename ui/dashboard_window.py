@@ -94,6 +94,7 @@ class DashboardWindow(QMainWindow):
         self.stack.addWidget(self.page_settings)   # 4
 
         self.sidebar.pageChanged.connect(self.change_page)
+        self.sidebar.logoutRequested.connect(self.logout_requested.emit)
 
         main_layout.addWidget(self.sidebar, 1)
         main_layout.addWidget(self.stack, 5)
