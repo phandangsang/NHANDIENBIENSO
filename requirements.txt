@@ -1,5 +1,6 @@
 opencv-python
-easyocr
+paddleocr
+paddlepaddle
 pillow
 ultralytics
 mysql-connector-python

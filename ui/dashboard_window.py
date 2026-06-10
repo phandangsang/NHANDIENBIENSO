@@ -2,7 +2,7 @@ import os
 from datetime import datetime
 
 import cv2
-from PyQt5.QtCore import Qt, QTimer, pyqtSignal
+from PyQt5.QtCore import Qt, QThread, QTimer, pyqtSignal
 from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtWidgets import (
     QComboBox,
@@ -19,6 +19,7 @@ from PyQt5.QtWidgets import (
 )
 
 from .exit_window import ExitWindow
+from .recognition_worker import EntryRecognitionService
 from .sidebar import Sidebar
 from .user_window import UserPage
 from .vehicles_window import VehiclesWindow
@@ -33,6 +34,7 @@ from models.user_model import (
 
 class DashboardWindow(QMainWindow):
     logout_requested = pyqtSignal()
+    entry_scan_requested = pyqtSignal(object, object)
 
     def __init__(self, user: dict):
         super().__init__()
@@ -43,7 +45,11 @@ class DashboardWindow(QMainWindow):
 
         self.cap1 = None
         self.cap2 = None
+        self.frame_cam1 = None
         self.frame_cam2 = None
+        self.recognition_busy = False
+        self.recognition_thread = None
+        self.recognition_service = None
 
         self.cap1_index = 0
         self.cap2_index = 1
@@ -54,10 +60,12 @@ class DashboardWindow(QMainWindow):
         self._build_ui()
         self._load_styles()
         self._open_cameras()
+        self._start_recognition_service()
         self.timer.start(30)
 
     def closeEvent(self, event):
         self.timer.stop()
+        self._stop_workers()
         self._release_cameras()
         event.accept()
 
@@ -170,17 +178,6 @@ class DashboardWindow(QMainWindow):
 
         return {"frame": frame, "label": cam_label, "combo": combo}
 
-    def _create_simple_page(self, name: str) -> QWidget:
-        page = QWidget()
-        layout = QVBoxLayout(page)
-
-        label = QLabel(name)
-        label.setStyleSheet("font-size:24px;font-weight:bold;")
-        layout.addWidget(label)
-        layout.addStretch()
-
-        return page
-
     def _open_cameras(self) -> None:
         self._release_cameras()
         self.cap1 = cv2.VideoCapture(self.cap1_index, cv2.CAP_DSHOW)
@@ -200,10 +197,20 @@ class DashboardWindow(QMainWindow):
         self.cap1 = None
         self.cap2 = None
 
+    def _stop_workers(self) -> None:
+        if self.recognition_thread is not None and self.recognition_thread.isRunning():
+            if self.recognition_service is not None:
+                self.recognition_service.shutdown()
+            self.recognition_thread.quit()
+            self.recognition_thread.wait(3000)
+        self.recognition_thread = None
+        self.recognition_service = None
+
     def update_camera(self) -> None:
         if self.cap1 is not None and self.cap1.isOpened():
             ret1, frame1 = self.cap1.read()
             if ret1 and frame1 is not None:
+                self.frame_cam1 = frame1.copy()
                 self.show_frame(frame1, self.camera_label_1)
                 self.page_exit_scan.update_camera_frame(frame1)
 
@@ -248,12 +255,66 @@ class DashboardWindow(QMainWindow):
         self.cap2 = cv2.VideoCapture(index, cv2.CAP_DSHOW)
 
     def capture_image(self) -> None:
-        if self.frame_cam2 is None:
+        frame = self.frame_cam1 if self.frame_cam1 is not None else self.frame_cam2
+        if frame is None:
+            QMessageBox.warning(self, "Camera", "Chua co hinh anh tu camera nhan dien.")
             return
 
-        os.makedirs("captures", exist_ok=True)
-        filename = datetime.now().strftime("captures/%Y%m%d_%H%M%S.jpg")
-        cv2.imwrite(filename, self.frame_cam2)
+        if self.recognition_busy:
+            return
+
+        self.confirm_btn.setEnabled(False)
+        self.confirm_btn.setText("DANG NHAN DIEN...")
+        self.plate_label.setText("DANG DOC...")
+
+        self.recognition_busy = True
+        self.entry_scan_requested.emit(frame.copy(), self.user.get("id"))
+
+    def _start_recognition_service(self) -> None:
+        self.recognition_thread = QThread(self)
+        self.recognition_service = EntryRecognitionService()
+        self.recognition_service.moveToThread(self.recognition_thread)
+
+        self.recognition_thread.started.connect(self.recognition_service.preload)
+        self.entry_scan_requested.connect(self.recognition_service.scan_entry)
+        self.recognition_service.ready.connect(self._on_ocr_ready)
+        self.recognition_service.preload_failed.connect(self._on_ocr_preload_failed)
+        self.recognition_service.failed.connect(self._on_entry_failed)
+        self.recognition_service.finished_ok.connect(self._on_entry_recognized)
+        self.recognition_service.busy_changed.connect(self._on_recognition_busy_changed)
+        self.recognition_thread.start()
+
+    def _on_ocr_ready(self) -> None:
+        self.confirm_btn.setToolTip("PaddleOCR da san sang.")
+
+    def _on_ocr_preload_failed(self, message: str) -> None:
+        self.confirm_btn.setToolTip(f"OCR chua san sang: {message}")
+
+    def _on_entry_recognized(self, data: dict) -> None:
+        plate_number = data.get("plate_number", "--")
+        captured_at = data.get("captured_at", "--")
+        confidence = data.get("confidence")
+
+        self.plate_label.setText(plate_number)
+        self.time_label.setText(captured_at)
+
+        message = f"Da luu xe vao: {plate_number}"
+        if confidence is not None:
+            message += f"\nDo tin cay: {float(confidence):.2f}"
+        QMessageBox.information(self, "Thanh cong", message)
+
+    def _on_entry_failed(self, message: str) -> None:
+        self.plate_label.setText("--")
+        QMessageBox.warning(self, "Nhan dien that bai", message)
+        self._on_recognition_busy_changed(False)
+
+    def _on_recognition_busy_changed(self, is_busy: bool) -> None:
+        self.recognition_busy = is_busy
+        if is_busy:
+            return
+
+        self.confirm_btn.setEnabled(True)
+        self.confirm_btn.setText("XAC NHAN")
 
     def change_page(self, index: int) -> None:
         self.stack.setCurrentIndex(index)

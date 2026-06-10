@@ -1,8 +1,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from threading import Lock
 
 import cv2
+
+
+_YOLO_MODELS = {}
+_YOLO_LOCK = Lock()
 
 
 @dataclass(frozen=True)
@@ -24,15 +29,25 @@ def detect_best_plate_bbox(image_bgr, model_path: str):
     Returns:
         PlateDetection | None
     """
-    try:
-        from ultralytics import YOLO
-    except Exception:
+    model = _get_yolo_model(model_path)
+    if model is None:
         return None
 
-    model = YOLO(model_path)
+    return _detect_best_plate_bbox_from_source(model, image_bgr)
 
-    # Ultralytics accepts numpy arrays (BGR ok). Keep it simple.
-    results = model.predict(image_bgr, verbose=False)
+
+def detect_best_plate_bbox_from_path(image_path: str, model_path: str):
+    model = _get_yolo_model(model_path)
+    if model is None:
+        return None
+
+    return _detect_best_plate_bbox_from_source(model, image_path)
+
+
+def _detect_best_plate_bbox_from_source(model, source):
+    # Use a larger inference size and lower confidence for small/blurred plates
+    # captured from webcam/phone screens.
+    results = model.predict(source, imgsz=960, conf=0.10, verbose=False)
     if not results:
         return None
 
@@ -52,7 +67,7 @@ def detect_best_plate_bbox(image_bgr, model_path: str):
     if best is None:
         return None
 
-    h, w = image_bgr.shape[:2]
+    h, w = r0.orig_shape[:2]
     x1 = _clamp(best.x1, 0, w - 1)
     y1 = _clamp(best.y1, 0, h - 1)
     x2 = _clamp(best.x2, 0, w)
@@ -74,3 +89,21 @@ def draw_bbox(image_bgr, bbox: PlateDetection):
     label = f"plate {bbox.confidence:.2f}"
     cv2.putText(out, label, (bbox.x1, max(0, bbox.y1 - 8)), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
     return out
+
+
+def _get_yolo_model(model_path: str):
+    if not model_path:
+        return None
+
+    with _YOLO_LOCK:
+        if model_path in _YOLO_MODELS:
+            return _YOLO_MODELS[model_path]
+
+        try:
+            from ultralytics import YOLO
+        except Exception:
+            return None
+
+        model = YOLO(model_path)
+        _YOLO_MODELS[model_path] = model
+        return model
