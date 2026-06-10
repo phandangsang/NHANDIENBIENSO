@@ -101,10 +101,6 @@ def _present_user(row: dict) -> dict:
         "full_name": row.get("full_name"),
         "role": row.get("role") or "staff",
         "created_at": row.get("created_at"),
-        "notif": int(row.get("notif") or 0),
-        "phone": "",
-        "email": "",
-        "shift": "",
-        "stats": {"total": total_scans, "warning": 0, "denied": 0},
+        "stats": {"total": total_scans},
         "recent_scans": [],
     }

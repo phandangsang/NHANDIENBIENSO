@@ -18,5 +18,5 @@ MYSQL_DATABASE = "license_plate_parking"
 
 # YOLOv8 license plate detector
 # - Dat file model (.pt) vao thu muc `weights/` va cap nhat ten file neu can.
-YOLO_USE = False
+YOLO_USE = True
 YOLO_MODEL_PATH = BASE_DIR / "weights" / "license_plate_yolov8.pt"

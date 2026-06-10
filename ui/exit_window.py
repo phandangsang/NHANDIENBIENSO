@@ -16,7 +16,12 @@ from PyQt5.QtWidgets import (
     QWidget,
 )
 
-from database.db import execute, fetch_one
+from config import BASE_DIR
+from database.db import fetch_one
+from models.image_model import create_image
+from models.parking_record_model import close_record
+
+EXIT_IMAGE_DIR = BASE_DIR / "storage" / "exit_images"
 
 
 def _load_exit_style():
@@ -137,11 +142,13 @@ class ExitWindow(QWidget):
             QMessageBox.warning(self, "Camera", "Chua co hinh anh tu camera quet xe ra.")
             return None
 
-        os.makedirs("captures/exit", exist_ok=True)
-        filename = datetime.now().strftime("captures/exit/%Y%m%d_%H%M%S.jpg")
-        cv2.imwrite(filename, self.current_frame)
-        self.exit_capture_path = filename
-        return filename
+        EXIT_IMAGE_DIR.mkdir(parents=True, exist_ok=True)
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        plate = self.exit_plate_label.text() or "unknown"
+        filepath = EXIT_IMAGE_DIR / f"{plate}_{timestamp}.jpg"
+        cv2.imwrite(str(filepath), self.current_frame)
+        self.exit_capture_path = str(filepath)
+        return str(filepath)
 
     def compare_exit_plate(self) -> None:
         plate_number = self.exit_plate_input.text().strip().upper()
@@ -190,21 +197,8 @@ class ExitWindow(QWidget):
         record_id = self.exit_entry_record.get("parking_record_id")
         plate_number = self.exit_plate_label.text()
 
-        execute(
-            """
-            UPDATE parking_records
-            SET exit_time = NOW(), status = 'out'
-            WHERE id = %s
-            """,
-            (record_id,),
-        )
-        execute(
-            """
-            INSERT INTO images (parking_record_id, image_path, image_type, plate_detected)
-            VALUES (%s, %s, 'exit', %s)
-            """,
-            (record_id, exit_image_path, plate_number),
-        )
+        close_record(record_id)
+        create_image(record_id, exit_image_path, "exit", plate_number)
 
         self.exit_status_label.setText("DA XAC NHAN XE RA")
         self.confirm_exit_btn.setEnabled(False)
