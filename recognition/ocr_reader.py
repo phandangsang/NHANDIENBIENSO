@@ -11,6 +11,7 @@ import cv2
 
 _OCR_PROCESS = None
 _OCR_LOCK = Lock()
+_OCR_REQUEST_LOCK = Lock()
 
 
 def get_ocr_process():
@@ -99,15 +100,16 @@ def _send_request(process, payload: dict) -> dict:
     if process.stdin is None or process.stdout is None:
         raise RuntimeError("OCR process khong san sang.")
 
-    process.stdin.write(json.dumps(payload, ensure_ascii=False) + "\n")
-    process.stdin.flush()
+    with _OCR_REQUEST_LOCK:
+        process.stdin.write(json.dumps(payload, ensure_ascii=False) + "\n")
+        process.stdin.flush()
 
-    line = process.stdout.readline()
-    if not line:
-        raise RuntimeError("OCR process da dung dot ngot.")
+        line = process.stdout.readline()
+        if not line:
+            raise RuntimeError("OCR process da dung dot ngot.")
 
-    response = json.loads(line)
-    if not response.get("success"):
-        raise RuntimeError(response.get("error") or "OCR that bai.")
+        response = json.loads(line)
+        if not response.get("success"):
+            raise RuntimeError(response.get("error") or "OCR that bai.")
 
-    return response
+        return response
