@@ -2,7 +2,7 @@ import os
 from datetime import datetime
 
 import cv2
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtWidgets import (
     QFrame,
@@ -34,6 +34,8 @@ def _load_exit_style():
 
 
 class ExitWindow(QWidget):
+    vehicle_exited = pyqtSignal()
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setObjectName("ExitWindow")
@@ -203,7 +205,9 @@ class ExitWindow(QWidget):
         self.exit_status_label.setText("DA XAC NHAN XE RA")
         self.confirm_exit_btn.setEnabled(False)
         self.exit_entry_record = None
+        self.vehicle_exited.emit()
         QMessageBox.information(self, "Thanh cong", "Da xac nhan xe ra va luu vao he thong.")
+
 
     def _find_active_entry_record(self, plate_number: str):
         return fetch_one(

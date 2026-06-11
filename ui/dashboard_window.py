@@ -102,6 +102,7 @@ class DashboardWindow(QMainWindow):
 
         self.sidebar.pageChanged.connect(self.change_page)
         self.sidebar.logoutRequested.connect(self.logout_requested.emit)
+        self.page_exit_scan.vehicle_exited.connect(self.page_vehicles.load_data)
 
         main_layout.addWidget(self.sidebar, 1)
         main_layout.addWidget(self.stack, 5)
@@ -297,6 +298,9 @@ class DashboardWindow(QMainWindow):
 
         self.plate_label.setText(plate_number)
         self.time_label.setText(captured_at)
+
+        # Tự động cập nhật danh sách xe
+        self.page_vehicles.load_data()
 
         message = f"Da luu xe vao: {plate_number}"
         if confidence is not None:
