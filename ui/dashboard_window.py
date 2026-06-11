@@ -44,15 +44,12 @@ class DashboardWindow(QMainWindow):
         self.resize(1200, 700)
 
         self.cap1 = None
-        self.cap2 = None
         self.frame_cam1 = None
-        self.frame_cam2 = None
         self.recognition_busy = False
         self.recognition_thread = None
         self.recognition_service = None
 
         self.cap1_index = 0
-        self.cap2_index = 1
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_camera)
@@ -116,18 +113,13 @@ class DashboardWindow(QMainWindow):
         camera_row = QHBoxLayout()
 
         cam1 = self._create_camera_block("Camera nhan dien", 0)
-        cam2 = self._create_camera_block("Camera chup anh", 1)
 
         self.camera_label_1 = cam1["label"]
-        self.camera_label_2 = cam2["label"]
         self.cam1_select = cam1["combo"]
-        self.cam2_select = cam2["combo"]
 
         self.cam1_select.currentIndexChanged.connect(self.change_camera_1)
-        self.cam2_select.currentIndexChanged.connect(self.change_camera_2)
 
         camera_row.addWidget(cam1["frame"])
-        camera_row.addWidget(cam2["frame"])
 
         self.info_frame = QFrame()
         self.info_frame.setObjectName("info_frame")
@@ -182,7 +174,6 @@ class DashboardWindow(QMainWindow):
     def _open_cameras(self) -> None:
         self._release_cameras()
         self.cap1 = cv2.VideoCapture(self.cap1_index, cv2.CAP_DSHOW)
-        self.cap2 = cv2.VideoCapture(self.cap2_index, cv2.CAP_DSHOW)
 
     def _release_cameras(self) -> None:
         if self.cap1 is not None:
@@ -190,13 +181,7 @@ class DashboardWindow(QMainWindow):
                 self.cap1.release()
             except Exception:
                 pass
-        if self.cap2 is not None:
-            try:
-                self.cap2.release()
-            except Exception:
-                pass
         self.cap1 = None
-        self.cap2 = None
 
     def _stop_workers(self) -> None:
         if self.recognition_thread is not None and self.recognition_thread.isRunning():
@@ -214,12 +199,6 @@ class DashboardWindow(QMainWindow):
                 self.frame_cam1 = frame1.copy()
                 self.show_frame(frame1, self.camera_label_1)
                 self.page_exit_scan.update_camera_frame(frame1)
-
-        if self.cap2 is not None and self.cap2.isOpened():
-            ret2, frame2 = self.cap2.read()
-            if ret2 and frame2 is not None:
-                self.frame_cam2 = frame2.copy()
-                self.show_frame(frame2, self.camera_label_2)
 
         self.time_label.setText(datetime.now().strftime("%d/%m/%Y %H:%M:%S"))
 
@@ -246,17 +225,8 @@ class DashboardWindow(QMainWindow):
                 pass
         self.cap1 = cv2.VideoCapture(index, cv2.CAP_DSHOW)
 
-    def change_camera_2(self, index: int) -> None:
-        self.cap2_index = index
-        if self.cap2 is not None:
-            try:
-                self.cap2.release()
-            except Exception:
-                pass
-        self.cap2 = cv2.VideoCapture(index, cv2.CAP_DSHOW)
-
     def capture_image(self) -> None:
-        frame = self.frame_cam1 if self.frame_cam1 is not None else self.frame_cam2
+        frame = self.frame_cam1
         if frame is None:
             QMessageBox.warning(self, "Camera", "Chua co hinh anh tu camera nhan dien.")
             return

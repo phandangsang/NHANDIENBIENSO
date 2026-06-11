@@ -2,14 +2,13 @@ import os
 from datetime import datetime
 
 import cv2
-from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt5.QtCore import QThread, Qt, pyqtSignal
 from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtWidgets import (
     QFrame,
     QGridLayout,
     QHBoxLayout,
     QLabel,
-    QLineEdit,
     QMessageBox,
     QPushButton,
     QVBoxLayout,
@@ -20,6 +19,9 @@ from config import BASE_DIR
 from database.db import fetch_one
 from models.image_model import create_image
 from models.parking_record_model import close_record
+from recognition.ocr_reader import read_plate_text
+from recognition.plate_detector import PlateDetectionError, detect_plate
+from utils.validation import is_valid_plate_number, normalize_plate_number
 
 EXIT_IMAGE_DIR = BASE_DIR / "storage" / "exit_images"
 
@@ -44,6 +46,8 @@ class ExitWindow(QWidget):
         self.exit_entry_record = None
         self.exit_capture_path = None
         self.current_frame = None
+        self.exit_confidence = None
+        self.exit_scan_worker = None
 
         self._build_ui()
 
@@ -95,19 +99,12 @@ class ExitWindow(QWidget):
         compare_row.addWidget(entry_image_frame)
         main_layout.addLayout(compare_row)
 
-        plate_row = QHBoxLayout()
-        self.exit_plate_input = QLineEdit()
-        self.exit_plate_input.setPlaceholderText("Nhap bien so quet duoc, vi du: 51G-999.00")
-        self.exit_plate_input.setFixedHeight(42)
+        self.scan_exit_btn = QPushButton("QUET TU CAMERA")
+        self.scan_exit_btn.setObjectName("PrimaryButton")
+        self.scan_exit_btn.setFixedHeight(50)
+        self.scan_exit_btn.clicked.connect(self.scan_exit_plate)
 
-        self.compare_exit_btn = QPushButton("DOI CHIEU")
-        self.compare_exit_btn.setObjectName("PrimaryButton")
-        self.compare_exit_btn.setFixedHeight(42)
-        self.compare_exit_btn.clicked.connect(self.compare_exit_plate)
-
-        plate_row.addWidget(self.exit_plate_input, 4)
-        plate_row.addWidget(self.compare_exit_btn, 1)
-        main_layout.addLayout(plate_row)
+        main_layout.addWidget(self.scan_exit_btn)
 
         self.exit_info_frame = QFrame()
         self.exit_info_frame.setObjectName("info_frame")
@@ -152,22 +149,64 @@ class ExitWindow(QWidget):
         self.exit_capture_path = str(filepath)
         return str(filepath)
 
-    def compare_exit_plate(self) -> None:
-        plate_number = self.exit_plate_input.text().strip().upper()
-        if not plate_number:
-            QMessageBox.warning(self, "Thieu bien so", "Vui long nhap bien so xe ra de doi chieu.")
+    def scan_exit_plate(self) -> None:
+        if self.current_frame is None:
+            QMessageBox.warning(self, "Camera", "Chua co hinh anh tu camera quet xe ra.")
             return
 
-        self.exit_entry_record = self._find_active_entry_record(plate_number)
+        if self.exit_scan_worker is not None and self.exit_scan_worker.isRunning():
+            return
+
+        self.scan_exit_btn.setEnabled(False)
+        self.confirm_exit_btn.setEnabled(False)
+        self.exit_status_label.setText("DANG QUET BIEN SO XE RA...")
+        self.exit_plate_label.setText("--")
+        self.entry_image_label.setPixmap(QPixmap())
+        self.entry_image_label.setText("Dang tim anh xe luc vao...")
+
+        self.exit_scan_worker = ExitScanWorker(self.current_frame)
+        self.exit_scan_worker.found.connect(self._on_exit_scan_found)
+        self.exit_scan_worker.not_found.connect(self._on_exit_scan_not_found)
+        self.exit_scan_worker.failed.connect(self._on_exit_scan_failed)
+        self.exit_scan_worker.finished.connect(self._on_exit_scan_finished)
+        self.exit_scan_worker.start()
+
+    def _on_exit_scan_found(self, data: dict) -> None:
+        plate_number = data["plate_number"]
+        self.exit_confidence = data.get("confidence")
+        self.exit_entry_record = data.get("entry_record")
+        self._show_entry_record(plate_number, self.exit_entry_record)
+
+    def _on_exit_scan_not_found(self, message: str, plate_number: str) -> None:
+        if plate_number:
+            self.exit_plate_label.setText(plate_number)
+        self.entry_image_label.setText("Khong tim thay xe dang trong bai")
+        self.entry_image_label.setPixmap(QPixmap())
+        self.exit_status_label.setText("KHONG THONG QUA")
+        self.confirm_exit_btn.setEnabled(False)
+        QMessageBox.warning(self, "Xe ra", message)
+
+    def _on_exit_scan_failed(self, message: str) -> None:
+        self.entry_image_label.setText("Khong the quet bien so xe ra")
+        self.entry_image_label.setPixmap(QPixmap())
+        self.exit_status_label.setText("QUET THAT BAI")
+        self.confirm_exit_btn.setEnabled(False)
+        QMessageBox.warning(self, "Nhan dien that bai", message)
+
+    def _on_exit_scan_finished(self) -> None:
+        self.scan_exit_btn.setEnabled(True)
+
+    def _show_entry_record(self, plate_number: str, entry_record) -> None:
         self.exit_plate_label.setText(plate_number)
 
-        if not self.exit_entry_record:
+        if not entry_record:
             self.entry_image_label.setText("Khong tim thay xe dang trong bai")
             self.entry_image_label.setPixmap(QPixmap())
             self.exit_status_label.setText("KHONG THONG QUA")
             self.confirm_exit_btn.setEnabled(False)
             return
 
+        self.exit_entry_record = entry_record
         image_path = self.exit_entry_record.get("image_path")
         if image_path and os.path.exists(image_path):
             pixmap = QPixmap(image_path)
@@ -184,7 +223,10 @@ class ExitWindow(QWidget):
             self.entry_image_label.setText("Co ban ghi xe vao nhung chua co anh")
 
         entry_time = self.exit_entry_record.get("entry_time")
-        self.exit_status_label.setText(f"THONG QUA - Vao luc: {entry_time}")
+        status = f"THONG QUA - Vao luc: {entry_time}"
+        if self.exit_confidence is not None:
+            status += f" - OCR: {float(self.exit_confidence) * 100:.1f}%"
+        self.exit_status_label.setText(status)
         self.confirm_exit_btn.setEnabled(True)
 
     def confirm_exit_vehicle(self) -> None:
@@ -200,16 +242,18 @@ class ExitWindow(QWidget):
         plate_number = self.exit_plate_label.text()
 
         close_record(record_id)
-        create_image(record_id, exit_image_path, "exit", plate_number)
+        create_image(record_id, exit_image_path, "exit", plate_number, self.exit_confidence)
 
         self.exit_status_label.setText("DA XAC NHAN XE RA")
         self.confirm_exit_btn.setEnabled(False)
         self.exit_entry_record = None
+        self.exit_confidence = None
         self.vehicle_exited.emit()
         QMessageBox.information(self, "Thanh cong", "Da xac nhan xe ra va luu vao he thong.")
 
 
-    def _find_active_entry_record(self, plate_number: str):
+    @staticmethod
+    def find_active_entry_record_static(plate_number: str):
         return fetch_one(
             """
             SELECT
@@ -245,3 +289,46 @@ class ExitWindow(QWidget):
                 Qt.SmoothTransformation,
             )
         )
+
+
+class ExitScanWorker(QThread):
+    found = pyqtSignal(dict)
+    not_found = pyqtSignal(str, str)
+    failed = pyqtSignal(str)
+
+    def __init__(self, frame_bgr):
+        super().__init__()
+        self.frame_bgr = frame_bgr.copy()
+
+    def run(self) -> None:
+        try:
+            try:
+                plate_image, detect_confidence = detect_plate(self.frame_bgr)
+            except PlateDetectionError as exc:
+                self.failed.emit(str(exc))
+                return
+
+            plate_text, ocr_confidence = read_plate_text(plate_image)
+            plate_number = normalize_plate_number(plate_text)
+
+            if not is_valid_plate_number(plate_number):
+                self.failed.emit(
+                    "Ket qua OCR khong dung dinh dang bien so Viet Nam. "
+                    "Hay dua bien so vao ro hon trong khung hinh."
+                )
+                return
+
+            entry_record = ExitWindow.find_active_entry_record_static(plate_number)
+            if not entry_record:
+                self.not_found.emit(f"Khong tim thay xe {plate_number} dang trong bai.", plate_number)
+                return
+
+            self.found.emit(
+                {
+                    "plate_number": plate_number,
+                    "confidence": ocr_confidence or detect_confidence,
+                    "entry_record": entry_record,
+                }
+            )
+        except Exception as exc:
+            self.failed.emit(str(exc))
