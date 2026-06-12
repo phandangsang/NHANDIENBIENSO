@@ -42,11 +42,12 @@ class UserDialog(QDialog):
 
         self.setObjectName("UserDialog")
         self.setWindowTitle("Sua nguoi dung" if self.is_edit else "Them nguoi dung")
-        self.setFixedSize(390, 345 if self.is_edit else 410)
+        self.setFixedSize(390, 380 if self.is_edit else 450)
         self.setStyleSheet(_load_user_style())
 
         self.username_input = QLineEdit()
         self.full_name_input = QLineEdit()
+        self.phone_input = QLineEdit()
         self.role_input = QComboBox()
         self.password_input = QLineEdit()
 
@@ -64,6 +65,7 @@ class UserDialog(QDialog):
 
         self.username_input.setPlaceholderText("Ten dang nhap")
         self.full_name_input.setPlaceholderText("Ho ten")
+        self.phone_input.setPlaceholderText("So dien thoai")
         self.role_input.addItems(["staff", "admin"])
         self.password_input.setPlaceholderText("Mat khau")
         self.password_input.setEchoMode(QLineEdit.Password)
@@ -75,6 +77,8 @@ class UserDialog(QDialog):
         layout.addWidget(self.username_input)
         layout.addWidget(QLabel("Ho ten"))
         layout.addWidget(self.full_name_input)
+        layout.addWidget(QLabel("So dien thoai"))
+        layout.addWidget(self.phone_input)
         layout.addWidget(QLabel("Vai tro"))
         layout.addWidget(self.role_input)
 
@@ -99,12 +103,14 @@ class UserDialog(QDialog):
             return
         self.username_input.setText(self.user_data.get("username", ""))
         self.full_name_input.setText(self.user_data.get("full_name", "") or "")
+        self.phone_input.setText(self.user_data.get("phone", "") or "")
         role_index = self.role_input.findText(self.user_data.get("role", "staff"))
         self.role_input.setCurrentIndex(role_index if role_index >= 0 else 0)
 
     def _save(self):
         username = self.username_input.text().strip()
         full_name = self.full_name_input.text().strip()
+        phone = self.phone_input.text().strip()
         role = self.role_input.currentText()
 
         if not username:
@@ -114,6 +120,7 @@ class UserDialog(QDialog):
         self.result_data = {
             "username": username,
             "full_name": full_name,
+            "phone": phone,
             "role": role,
         }
 

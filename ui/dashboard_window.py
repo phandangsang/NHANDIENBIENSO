@@ -19,7 +19,7 @@ from PyQt5.QtWidgets import (
 )
 
 from .exit_window import ExitWindow
-from .recognition_worker import EntryRecognitionService
+from .entry_scan_worker import EntryScanService
 from .sidebar import Sidebar
 from .user_window import UserPage
 from .vehicles_window import VehiclesWindow
@@ -46,8 +46,8 @@ class DashboardWindow(QMainWindow):
         self.cap1 = None
         self.frame_cam1 = None
         self.recognition_busy = False
-        self.recognition_thread = None
-        self.recognition_service = None
+        self.entry_scan_thread = None
+        self.entry_scan_service = None
 
         self.cap1_index = 0
 
@@ -57,7 +57,7 @@ class DashboardWindow(QMainWindow):
         self._build_ui()
         self._load_styles()
         self._open_cameras()
-        self._start_recognition_service()
+        self._start_entry_scan_service()
         self.timer.start(30)
 
     def closeEvent(self, event):
@@ -184,13 +184,13 @@ class DashboardWindow(QMainWindow):
         self.cap1 = None
 
     def _stop_workers(self) -> None:
-        if self.recognition_thread is not None and self.recognition_thread.isRunning():
-            if self.recognition_service is not None:
-                self.recognition_service.shutdown()
-            self.recognition_thread.quit()
-            self.recognition_thread.wait(3000)
-        self.recognition_thread = None
-        self.recognition_service = None
+        if self.entry_scan_thread is not None and self.entry_scan_thread.isRunning():
+            if self.entry_scan_service is not None:
+                self.entry_scan_service.shutdown()
+            self.entry_scan_thread.quit()
+            self.entry_scan_thread.wait(3000)
+        self.entry_scan_thread = None
+        self.entry_scan_service = None
 
     def update_camera(self) -> None:
         if self.cap1 is not None and self.cap1.isOpened():
@@ -241,19 +241,19 @@ class DashboardWindow(QMainWindow):
         self.recognition_busy = True
         self.entry_scan_requested.emit(frame.copy(), self.user.get("id"))
 
-    def _start_recognition_service(self) -> None:
-        self.recognition_thread = QThread(self)
-        self.recognition_service = EntryRecognitionService()
-        self.recognition_service.moveToThread(self.recognition_thread)
+    def _start_entry_scan_service(self) -> None:
+        self.entry_scan_thread = QThread(self)
+        self.entry_scan_service = EntryScanService()
+        self.entry_scan_service.moveToThread(self.entry_scan_thread)
 
-        self.recognition_thread.started.connect(self.recognition_service.preload)
-        self.entry_scan_requested.connect(self.recognition_service.scan_entry)
-        self.recognition_service.ready.connect(self._on_ocr_ready)
-        self.recognition_service.preload_failed.connect(self._on_ocr_preload_failed)
-        self.recognition_service.failed.connect(self._on_entry_failed)
-        self.recognition_service.finished_ok.connect(self._on_entry_recognized)
-        self.recognition_service.busy_changed.connect(self._on_recognition_busy_changed)
-        self.recognition_thread.start()
+        self.entry_scan_thread.started.connect(self.entry_scan_service.preload)
+        self.entry_scan_requested.connect(self.entry_scan_service.scan_entry)
+        self.entry_scan_service.ready.connect(self._on_ocr_ready)
+        self.entry_scan_service.preload_failed.connect(self._on_ocr_preload_failed)
+        self.entry_scan_service.failed.connect(self._on_entry_failed)
+        self.entry_scan_service.finished_ok.connect(self._on_entry_recognized)
+        self.entry_scan_service.busy_changed.connect(self._on_recognition_busy_changed)
+        self.entry_scan_thread.start()
 
     def _on_ocr_ready(self) -> None:
         self.confirm_btn.setToolTip("PaddleOCR da san sang.")
@@ -328,6 +328,7 @@ class DashboardWindow(QMainWindow):
                 username=data.get("username", ""),
                 password=data.get("password", ""),
                 full_name=data.get("full_name", ""),
+                phone=data.get("phone", ""),
                 role=data.get("role", "staff"),
             )
             self._reload_users()

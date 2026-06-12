@@ -36,6 +36,7 @@ def init_database() -> None:
         cursor = connection.cursor()
         for statement in _split_sql(schema):
             cursor.execute(statement)
+        _ensure_user_columns(cursor)
         cursor.close()
 
 
@@ -74,3 +75,14 @@ def _split_sql(schema: str):
         if statement:
             parts.append(statement)
     return parts
+
+
+def _ensure_user_columns(cursor) -> None:
+    user_columns = {
+        "phone": "VARCHAR(20) NULL",
+    }
+
+    for column, definition in user_columns.items():
+        cursor.execute("SHOW COLUMNS FROM `user` LIKE %s", (column,))
+        if cursor.fetchone() is None:
+            cursor.execute(f"ALTER TABLE `user` ADD COLUMN `{column}` {definition}")

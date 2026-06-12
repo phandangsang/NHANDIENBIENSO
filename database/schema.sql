@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS `user` (
   `username` VARCHAR(64) NOT NULL,
   `password` VARCHAR(255) NOT NULL,
   `full_name` VARCHAR(255) NULL,
+  `phone` VARCHAR(20) NULL,
   `role` VARCHAR(32) NULL DEFAULT 'staff',
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
@@ -56,8 +57,3 @@ CREATE TABLE IF NOT EXISTS `images` (
 INSERT INTO `user` (`username`, `password`, `full_name`, `role`)
 VALUES ('admin', 'admin123', 'Quan tri vien', 'admin')
 ON DUPLICATE KEY UPDATE `username` = `username`;
-
-ALTER TABLE `user`
-ADD COLUMN `online` TINYINT(1) DEFAULT 0,
-ADD COLUMN `last_seen` DATETIME NULL,
-ADD COLUMN `notif` INT DEFAULT 0;

@@ -17,12 +17,13 @@ def list_users() -> list[dict]:
             u.username,
             u.password,
             u.full_name,
+            u.phone,
             u.role,
             u.created_at,
             COUNT(pr.id) AS total_scans
         FROM `user` u
         LEFT JOIN parking_records pr ON pr.user_id = u.id
-        GROUP BY u.id, u.username, u.password, u.full_name, u.role, u.created_at
+        GROUP BY u.id, u.username, u.password, u.full_name, u.phone, u.role, u.created_at
         ORDER BY u.id DESC
         """
     )
@@ -33,13 +34,13 @@ def list_users() -> list[dict]:
     return users
 
 
-def create_user(username: str, password: str, full_name: str, role: str) -> dict:
+def create_user(username: str, password: str, full_name: str, role: str, phone: str = "") -> dict:
     user_id = execute(
         """
-        INSERT INTO `user` (`username`, `password`, `full_name`, `role`)
-        VALUES (%s, %s, %s, %s)
+        INSERT INTO `user` (`username`, `password`, `full_name`, `phone`, `role`)
+        VALUES (%s, %s, %s, %s, %s)
         """,
-        (username, password, full_name, role),
+        (username, password, full_name, phone, role),
     )
     return get_user_by_id(user_id)
 
@@ -48,10 +49,10 @@ def update_user(user_id: int, data: dict) -> dict:
     execute(
         """
         UPDATE `user`
-        SET `full_name` = %s, `role` = %s
+        SET `full_name` = %s, `phone` = %s, `role` = %s
         WHERE `id` = %s
         """,
-        (data.get("full_name"), data.get("role", "staff"), user_id),
+        (data.get("full_name"), data.get("phone"), data.get("role", "staff"), user_id),
     )
     return get_user_by_id(user_id)
 
@@ -76,13 +77,14 @@ def get_user_by_id(user_id: int) -> dict:
             u.username,
             u.password,
             u.full_name,
+            u.phone,
             u.role,
             u.created_at,
             COUNT(pr.id) AS total_scans
         FROM `user` u
         LEFT JOIN parking_records pr ON pr.user_id = u.id
         WHERE u.id = %s
-        GROUP BY u.id, u.username, u.password, u.full_name, u.role, u.created_at
+        GROUP BY u.id, u.username, u.password, u.full_name, u.phone, u.role, u.created_at
         """,
         (user_id,),
     )
@@ -99,6 +101,7 @@ def _present_user(row: dict) -> dict:
         "username": row.get("username"),
         "password": row.get("password"),
         "full_name": row.get("full_name"),
+        "phone": row.get("phone"),
         "role": row.get("role") or "staff",
         "created_at": row.get("created_at"),
         "stats": {"total": total_scans},
