@@ -2,7 +2,7 @@ import os
 from datetime import datetime
 
 import cv2
-from PyQt5.QtCore import QThread, Qt, pyqtSignal
+from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtWidgets import (
     QFrame,
@@ -15,15 +15,8 @@ from PyQt5.QtWidgets import (
     QWidget,
 )
 
-from config import BASE_DIR
-from database.db import fetch_one
-from models.image_model import create_image
-from models.parking_record_model import close_record
-from recognition.ocr_reader import read_plate_text
-from recognition.plate_detector import PlateDetectionError, detect_plate
-from utils.validation import is_valid_plate_number, normalize_plate_number
-
-EXIT_IMAGE_DIR = BASE_DIR / "storage" / "exit_images"
+from services.exit_service import confirm_vehicle_exit
+from .exit_scan_worker import ExitScanWorker
 
 
 def _load_exit_style():
@@ -136,19 +129,6 @@ class ExitWindow(QWidget):
         if self.exit_entry_record is None:
             self.exit_status_label.setText(datetime.now().strftime("%d/%m/%Y %H:%M:%S"))
 
-    def capture_exit_image(self):
-        if self.current_frame is None:
-            QMessageBox.warning(self, "Camera", "Chua co hinh anh tu camera quet xe ra.")
-            return None
-
-        EXIT_IMAGE_DIR.mkdir(parents=True, exist_ok=True)
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        plate = self.exit_plate_label.text() or "unknown"
-        filepath = EXIT_IMAGE_DIR / f"{plate}_{timestamp}.jpg"
-        cv2.imwrite(str(filepath), self.current_frame)
-        self.exit_capture_path = str(filepath)
-        return str(filepath)
-
     def scan_exit_plate(self) -> None:
         if self.current_frame is None:
             QMessageBox.warning(self, "Camera", "Chua co hinh anh tu camera quet xe ra.")
@@ -234,15 +214,17 @@ class ExitWindow(QWidget):
             QMessageBox.warning(self, "Chua doi chieu", "Vui long doi chieu bien so truoc khi xac nhan.")
             return
 
-        exit_image_path = self.capture_exit_image()
-        if not exit_image_path:
+        if self.current_frame is None:
+            QMessageBox.warning(self, "Camera", "Chua co hinh anh tu camera quet xe ra.")
             return
 
-        record_id = self.exit_entry_record.get("parking_record_id")
         plate_number = self.exit_plate_label.text()
-
-        close_record(record_id)
-        create_image(record_id, exit_image_path, "exit", plate_number, self.exit_confidence)
+        self.exit_capture_path = confirm_vehicle_exit(
+            self.exit_entry_record,
+            plate_number,
+            self.current_frame,
+            self.exit_confidence,
+        )
 
         self.exit_status_label.setText("DA XAC NHAN XE RA")
         self.confirm_exit_btn.setEnabled(False)
@@ -250,31 +232,6 @@ class ExitWindow(QWidget):
         self.exit_confidence = None
         self.vehicle_exited.emit()
         QMessageBox.information(self, "Thanh cong", "Da xac nhan xe ra va luu vao he thong.")
-
-
-    @staticmethod
-    def find_active_entry_record_static(plate_number: str):
-        return fetch_one(
-            """
-            SELECT
-                pr.id AS parking_record_id,
-                pr.entry_time,
-                v.id AS vehicle_id,
-                v.plate_number,
-                img.image_path
-            FROM parking_records pr
-            JOIN vehicle v ON v.id = pr.vehicle_id
-            LEFT JOIN images img
-                ON img.parking_record_id = pr.id
-               AND img.image_type = 'entry'
-            WHERE v.plate_number = %s
-              AND pr.exit_time IS NULL
-              AND pr.status = 'in'
-            ORDER BY pr.entry_time DESC, img.captured_at DESC
-            LIMIT 1
-            """,
-            (plate_number,),
-        )
 
     def _show_frame(self, frame, label: QLabel) -> None:
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -289,46 +246,3 @@ class ExitWindow(QWidget):
                 Qt.SmoothTransformation,
             )
         )
-
-
-class ExitScanWorker(QThread):
-    found = pyqtSignal(dict)
-    not_found = pyqtSignal(str, str)
-    failed = pyqtSignal(str)
-
-    def __init__(self, frame_bgr):
-        super().__init__()
-        self.frame_bgr = frame_bgr.copy()
-
-    def run(self) -> None:
-        try:
-            try:
-                plate_image, detect_confidence = detect_plate(self.frame_bgr)
-            except PlateDetectionError as exc:
-                self.failed.emit(str(exc))
-                return
-
-            plate_text, ocr_confidence = read_plate_text(plate_image)
-            plate_number = normalize_plate_number(plate_text)
-
-            if not is_valid_plate_number(plate_number):
-                self.failed.emit(
-                    "Ket qua OCR khong dung dinh dang bien so Viet Nam. "
-                    "Hay dua bien so vao ro hon trong khung hinh."
-                )
-                return
-
-            entry_record = ExitWindow.find_active_entry_record_static(plate_number)
-            if not entry_record:
-                self.not_found.emit(f"Khong tim thay xe {plate_number} dang trong bai.", plate_number)
-                return
-
-            self.found.emit(
-                {
-                    "plate_number": plate_number,
-                    "confidence": ocr_confidence or detect_confidence,
-                    "entry_record": entry_record,
-                }
-            )
-        except Exception as exc:
-            self.failed.emit(str(exc))

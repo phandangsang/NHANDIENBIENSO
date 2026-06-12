@@ -40,7 +40,7 @@ class DashboardWindow(QMainWindow):
         super().__init__()
         self.user = user
 
-        self.setWindowTitle("LPR Dashboard")
+        self.setWindowTitle("PARKING")
         self.resize(1200, 700)
 
         self.cap1 = None
