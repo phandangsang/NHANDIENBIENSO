@@ -25,7 +25,7 @@ class Sidebar(QWidget):
         layout.setContentsMargins(18, 18, 18, 18)
         layout.setSpacing(12)
 
-        title = QLabel("LPR Admin")
+        title = QLabel("PARKING")
         title.setObjectName("sidebarTitle")
         layout.addWidget(title)
         layout.addSpacing(10)
