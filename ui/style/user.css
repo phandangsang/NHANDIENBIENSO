@@ -159,10 +159,24 @@
 #UserDialog QLineEdit,
 #UserDialog QComboBox {
     background-color: #0f2742;
-    color: #ffffff;
+    color: #f4fbff;
     border: 1px solid #2d6798;
     border-radius: 8px;
-    padding: 10px 12px;
+    min-height: 26px;
+    padding: 4px 10px;
+    font-size: 14px;
+    font-weight: 500;
+    selection-background-color: #19c8f4;
+    selection-color: #06101c;
+}
+
+#UserDialog QLineEdit::placeholder {
+    color: #7fa6c4;
+}
+
+#UserDialog QLineEdit:read-only {
+    background-color: #12263d;
+    color: #b8d6ec;
 }
 
 #UserDialog QLineEdit:focus,
