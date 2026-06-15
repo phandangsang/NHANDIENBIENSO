@@ -300,10 +300,8 @@ class UserPage(QWidget):
         info_layout.setContentsMargins(18, 16, 18, 16)
         info_layout.setHorizontalSpacing(24)
         info_layout.setVerticalSpacing(10)
-        self.email_value = self._add_info_row(info_layout, 0, "Email")
-        self.phone_value = self._add_info_row(info_layout, 1, "Dien thoai")
-        self.shift_value = self._add_info_row(info_layout, 2, "Ca lam viec")
-        self.created_value = self._add_info_row(info_layout, 3, "Ngay tao")
+        self.phone_value = self._add_info_row(info_layout, 0, "Dien thoai")
+        self.created_value = self._add_info_row(info_layout, 1, "Ngay tao")
         content_layout.addWidget(info_card)
 
         recent_title = QLabel("Luot quet gan day")
@@ -392,12 +390,7 @@ class UserPage(QWidget):
         self.name_label.setText(user.get("full_name") or user.get("username") or "Nguoi dung")
         self.username_label.setText(f"Username: {_text(user.get('username'))}")
         self.role_label.setText((_text(user.get("role"), "staff")).upper())
-
-    
-
-        self.email_value.setText(_text(user.get("email")))
         self.phone_value.setText(_text(user.get("phone")))
-        self.shift_value.setText(_text(user.get("shift")))
         self.created_value.setText(_text(user.get("created_at")))
 
         self.recent_list.clear()
@@ -421,9 +414,7 @@ class UserPage(QWidget):
         self.name_label.setText("Chua chon nguoi dung")
         self.username_label.setText("Chon mot nguoi dung o danh sach ben trai")
         self.role_label.setText("-")
-        self.email_value.setText("-")
         self.phone_value.setText("-")
-        self.shift_value.setText("-")
         self.created_value.setText("-")
         self.recent_list.clear()
         self.recent_list.addItem("Khong co du lieu")

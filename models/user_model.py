@@ -96,8 +96,9 @@ def _present_user(row: dict) -> dict:
         return {}
 
     total_scans = int(row.get("total_scans") or 0)
+    user_id = row.get("id")
     return {
-        "id": row.get("id"),
+        "id": user_id,
         "username": row.get("username"),
         "password": row.get("password"),
         "full_name": row.get("full_name"),
@@ -105,5 +106,50 @@ def _present_user(row: dict) -> dict:
         "role": row.get("role") or "staff",
         "created_at": row.get("created_at"),
         "stats": {"total": total_scans},
-        "recent_scans": [],
+        "recent_scans": _get_recent_scans(user_id),
     }
+
+
+def _get_recent_scans(user_id: int | None) -> list[dict]:
+    if not user_id:
+        return []
+
+    rows = fetch_all(
+        """
+        SELECT
+            pr.id,
+            v.plate_number,
+            pr.status,
+            pr.entry_time,
+            pr.exit_time
+        FROM parking_records pr
+        JOIN vehicle v ON v.id = pr.vehicle_id
+        WHERE pr.user_id = %s
+        ORDER BY pr.id DESC
+        LIMIT 6
+        """,
+        (user_id,),
+    )
+
+    scans = []
+    for row in rows:
+        status = row.get("status") or "-"
+        time_value = row.get("exit_time") if status == "out" else row.get("entry_time")
+        scans.append(
+            {
+                "plate_number": row.get("plate_number"),
+                "status": _format_status(status),
+                "time": time_value,
+            }
+        )
+    return scans
+
+
+def _format_status(status: str) -> str:
+    status_map = {
+        "in": "XE VAO",
+        "out": "XE RA",
+        "warning": "CANH BAO",
+        "deny": "TU CHOI",
+    }
+    return status_map.get((status or "").lower(), (status or "-").upper())
