@@ -2,6 +2,7 @@ import sys
 
 from PyQt5.QtWidgets import QApplication
 
+from database.db import init_database
 from ui.dashboard_window import DashboardWindow
 from ui.login_window import LoginWindow
 
@@ -15,8 +16,10 @@ def load_qss(app: QApplication) -> None:
 
 
 if __name__ == "__main__":
+    init_database()
+
     app = QApplication(sys.argv)
-    app.setQuitOnLastWindowClosed(False)
+    app.setQuitOnLastWindowClosed(True)
     load_qss(app)
 
     login_window = LoginWindow()
@@ -29,11 +32,13 @@ if __name__ == "__main__":
         login_window.hide()
 
     def logout() -> None:
-        if app.dashboard_window is not None:
-            app.dashboard_window.close()
-            app.dashboard_window = None
         login_window.reset_form()
         login_window.show()
+
+        if app.dashboard_window is not None:
+            dashboard_window = app.dashboard_window
+            app.dashboard_window = None
+            dashboard_window.close()
 
     login_window.login_success.connect(open_dashboard)
     login_window.show()
