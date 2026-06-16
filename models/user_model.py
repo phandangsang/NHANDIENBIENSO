@@ -34,7 +34,7 @@ def list_users() -> list[dict]:
     return users
 
 
-def create_user(username: str, password: str, full_name: str, role: str, phone: str = "") -> dict:
+def create_user(username: str, password: str, full_name: str, phone: str = "", role: str = "staff") -> dict:
     user_id = execute(
         """
         INSERT INTO `user` (`username`, `password`, `full_name`, `phone`, `role`)

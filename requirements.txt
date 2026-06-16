@@ -1,4 +1,5 @@
 opencv-python
+PyQt5
 paddleocr
 paddlepaddle
 pillow
