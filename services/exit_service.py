@@ -21,9 +21,11 @@ def find_active_entry_record(plate_number: str):
             v.id AS vehicle_id,
             v.plate_number,
             v.vehicle_type,
+            z.zone_name,
             img.image_path
         FROM parking_records pr
         JOIN vehicle v ON v.id = pr.vehicle_id
+        LEFT JOIN parking_zones z ON z.id = pr.zone_id
         LEFT JOIN images img
             ON img.parking_record_id = pr.id
            AND img.image_type = 'entry'

@@ -6,6 +6,7 @@ from config import ENTRY_IMAGE_DIR
 from models.parking_record_model import find_active_record_by_vehicle
 from models.vehicle_model import find_by_plate_number
 from services.parking_service import record_vehicle_entry
+from services.parking_zone_service import ensure_zone_available
 
 
 def create_vehicle_entry(
@@ -14,6 +15,7 @@ def create_vehicle_entry(
     user_id: int | None,
     confidence=None,
     vehicle_type: str = "car",
+    zone_id: int | None = None,
 ) -> dict:
     vehicle = find_by_plate_number(plate_number)
     if vehicle:
@@ -21,6 +23,7 @@ def create_vehicle_entry(
         if active_record:
             raise ValueError(f"Xe {plate_number} dang o trong bai.")
 
+    zone = ensure_zone_available(zone_id, vehicle_type)
     image_path = save_entry_image(frame_bgr, plate_number)
     record_id = record_vehicle_entry(
         plate_number=plate_number,
@@ -28,12 +31,14 @@ def create_vehicle_entry(
         user_id=user_id,
         confidence=confidence,
         vehicle_type=vehicle_type,
+        zone_id=zone_id,
     )
 
     return {
         "record_id": record_id,
         "plate_number": plate_number,
         "vehicle_type": vehicle_type,
+        "zone": zone,
         "image_path": image_path,
         "confidence": confidence,
         "captured_at": datetime.now().strftime("%d/%m/%Y %H:%M:%S"),

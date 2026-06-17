@@ -216,6 +216,9 @@ class ExitWindow(QWidget):
 
         entry_time = self.exit_entry_record.get("entry_time")
         status = f"THONG QUA - Vao luc: {entry_time}"
+        zone_name = self.exit_entry_record.get("zone_name")
+        if zone_name:
+            status += f" - Khu: {zone_name}"
         if self.exit_confidence is not None:
             status += f" - OCR: {float(self.exit_confidence) * 100:.1f}%"
         self.exit_status_label.setText(status)

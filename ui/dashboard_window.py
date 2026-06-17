@@ -20,6 +20,7 @@ from PyQt5.QtWidgets import (
 
 from .exit_window import ExitWindow
 from .entry_scan_worker import EntryScanService
+from .revenue_window import RevenueWindow
 from .sidebar import Sidebar
 from .user_window import UserPage
 from .vehicles_window import VehiclesWindow
@@ -30,11 +31,12 @@ from models.user_model import (
     update_password,
     update_user,
 )
+from services.parking_zone_service import get_available_zones
 
 
 class DashboardWindow(QMainWindow):
     logout_requested = pyqtSignal()
-    entry_scan_requested = pyqtSignal(object, object, object)
+    entry_scan_requested = pyqtSignal(object, object, object, object)
 
     def __init__(self, user: dict):
         super().__init__()
@@ -88,18 +90,21 @@ class DashboardWindow(QMainWindow):
         self.page_dashboard = self._create_dashboard_page()
         self.page_exit_scan = ExitWindow(self.user)
         self.page_vehicles = VehiclesWindow()
+        self.page_revenue = RevenueWindow()
         self.page_users = UserPage()
         self._setup_user_page()
 
-        # Keep indexes aligned with ui/sidebar.py (0..3)
+        # Keep indexes aligned with ui/sidebar.py (0..4)
         self.stack.addWidget(self.page_dashboard)  # 0
         self.stack.addWidget(self.page_exit_scan)  # 1
         self.stack.addWidget(self.page_vehicles)   # 2
-        self.stack.addWidget(self.page_users)      # 3
+        self.stack.addWidget(self.page_revenue)    # 3
+        self.stack.addWidget(self.page_users)      # 4
 
         self.sidebar.pageChanged.connect(self.change_page)
         self.sidebar.logoutRequested.connect(self.logout_requested.emit)
         self.page_exit_scan.vehicle_exited.connect(self.page_vehicles.load_data)
+        self.page_exit_scan.vehicle_exited.connect(self.page_revenue.load_data)
 
         main_layout.addWidget(self.sidebar, 1)
         main_layout.addWidget(self.stack, 5)
@@ -140,8 +145,15 @@ class DashboardWindow(QMainWindow):
         self.vehicle_type_select = QComboBox()
         self.vehicle_type_select.addItem("Xe may", "motorbike")
         self.vehicle_type_select.addItem("O to", "car")
+        self.vehicle_type_select.currentIndexChanged.connect(self._reload_zone_options)
         info_layout.addWidget(vehicle_type_label, 1, 0)
         info_layout.addWidget(self.vehicle_type_select, 1, 1)
+
+        zone_label = QLabel("Khu vuc")
+        self.zone_select = QComboBox()
+        info_layout.addWidget(zone_label, 2, 0)
+        info_layout.addWidget(self.zone_select, 2, 1)
+        self._reload_zone_options()
 
         self.confirm_btn = QPushButton("XAC NHAN")
         self.confirm_btn.setFixedHeight(50)
@@ -247,7 +259,8 @@ class DashboardWindow(QMainWindow):
 
         self.recognition_busy = True
         vehicle_type = self.vehicle_type_select.currentData() or "car"
-        self.entry_scan_requested.emit(frame.copy(), self.user.get("id"), vehicle_type)
+        zone_id = self.zone_select.currentData()
+        self.entry_scan_requested.emit(frame.copy(), self.user.get("id"), vehicle_type, zone_id)
 
     def _start_entry_scan_service(self) -> None:
         self.entry_scan_thread = QThread(self)
@@ -283,6 +296,9 @@ class DashboardWindow(QMainWindow):
         message = f"Da luu xe vao: {plate_number}"
         vehicle_type_text = "Xe may" if data.get("vehicle_type") == "motorbike" else "O to"
         message += f"\nLoai xe: {vehicle_type_text}"
+        zone = data.get("zone")
+        if zone:
+            message += f"\nKhu vuc: {zone.get('zone_name')}"
         if confidence is not None:
             message += f"\nDo tin cay: {float(confidence):.2f}"
         QMessageBox.information(self, "Thanh cong", message)
@@ -299,6 +315,28 @@ class DashboardWindow(QMainWindow):
 
         self.confirm_btn.setEnabled(True)
         self.confirm_btn.setText("XAC NHAN")
+        self._reload_zone_options()
+
+    def _reload_zone_options(self) -> None:
+        if not hasattr(self, "zone_select"):
+            return
+
+        vehicle_type = self.vehicle_type_select.currentData() or "car"
+        current_zone_id = self.zone_select.currentData()
+        self.zone_select.blockSignals(True)
+        self.zone_select.clear()
+        zones = get_available_zones(vehicle_type)
+        for zone in zones:
+            label = (
+                f"{zone.get('zone_name')} "
+                f"({zone.get('available')}/{zone.get('capacity')} trong)"
+            )
+            self.zone_select.addItem(label, zone.get("id"))
+        if current_zone_id is not None:
+            index = self.zone_select.findData(current_zone_id)
+            if index >= 0:
+                self.zone_select.setCurrentIndex(index)
+        self.zone_select.blockSignals(False)
 
     def change_page(self, index: int) -> None:
         self.stack.setCurrentIndex(index)
