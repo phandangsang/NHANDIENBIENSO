@@ -16,6 +16,7 @@ from PyQt5.QtWidgets import (
 )
 
 from services.exit_service import confirm_vehicle_exit
+from services.payment_service import calculate_parking_fee, format_duration, format_money
 from .exit_scan_worker import ExitScanWorker
 
 
@@ -31,8 +32,9 @@ def _load_exit_style():
 class ExitWindow(QWidget):
     vehicle_exited = pyqtSignal()
 
-    def __init__(self, parent=None):
+    def __init__(self, user: dict | None = None, parent=None):
         super().__init__(parent)
+        self.user = user or {}
         self.setObjectName("ExitWindow")
         self.setStyleSheet(_load_exit_style())
 
@@ -41,6 +43,7 @@ class ExitWindow(QWidget):
         self.current_frame = None
         self.exit_confidence = None
         self.exit_scan_worker = None
+        self.exit_fee = None
 
         self._build_ui()
 
@@ -111,11 +114,16 @@ class ExitWindow(QWidget):
         self.exit_status_label.setAlignment(Qt.AlignCenter)
         self.exit_status_label.setObjectName("time_label")
 
+        self.exit_fee_label = QLabel("Phi gui xe: --")
+        self.exit_fee_label.setAlignment(Qt.AlignCenter)
+        self.exit_fee_label.setObjectName("time_label")
+
         info_layout.addWidget(self.exit_plate_label, 0, 0)
         info_layout.addWidget(self.exit_status_label, 0, 1)
+        info_layout.addWidget(self.exit_fee_label, 1, 0, 1, 2)
         main_layout.addWidget(self.exit_info_frame)
 
-        self.confirm_exit_btn = QPushButton("XAC NHAN XE RA")
+        self.confirm_exit_btn = QPushButton("XAC NHAN THU PHI VA XE RA")
         self.confirm_exit_btn.setObjectName("ConfirmButton")
         self.confirm_exit_btn.setFixedHeight(50)
         self.confirm_exit_btn.clicked.connect(self.confirm_exit_vehicle)
@@ -141,6 +149,8 @@ class ExitWindow(QWidget):
         self.confirm_exit_btn.setEnabled(False)
         self.exit_status_label.setText("DANG QUET BIEN SO XE RA...")
         self.exit_plate_label.setText("--")
+        self.exit_fee_label.setText("Phi gui xe: --")
+        self.exit_fee = None
         self.entry_image_label.setPixmap(QPixmap())
         self.entry_image_label.setText("Dang tim anh xe luc vao...")
 
@@ -163,6 +173,7 @@ class ExitWindow(QWidget):
         self.entry_image_label.setText("Khong tim thay xe dang trong bai")
         self.entry_image_label.setPixmap(QPixmap())
         self.exit_status_label.setText("KHONG THONG QUA")
+        self.exit_fee_label.setText("Phi gui xe: --")
         self.confirm_exit_btn.setEnabled(False)
         QMessageBox.warning(self, "Xe ra", message)
 
@@ -170,6 +181,7 @@ class ExitWindow(QWidget):
         self.entry_image_label.setText("Khong the quet bien so xe ra")
         self.entry_image_label.setPixmap(QPixmap())
         self.exit_status_label.setText("QUET THAT BAI")
+        self.exit_fee_label.setText("Phi gui xe: --")
         self.confirm_exit_btn.setEnabled(False)
         QMessageBox.warning(self, "Nhan dien that bai", message)
 
@@ -207,6 +219,11 @@ class ExitWindow(QWidget):
         if self.exit_confidence is not None:
             status += f" - OCR: {float(self.exit_confidence) * 100:.1f}%"
         self.exit_status_label.setText(status)
+        self.exit_fee = calculate_parking_fee(self.exit_entry_record)
+        self.exit_fee_label.setText(
+            f"Thoi gian gui: {format_duration(self.exit_fee['duration_minutes'])} - "
+            f"Phi: {format_money(self.exit_fee['amount'])}"
+        )
         self.confirm_exit_btn.setEnabled(True)
 
     def confirm_exit_vehicle(self) -> None:
@@ -219,19 +236,31 @@ class ExitWindow(QWidget):
             return
 
         plate_number = self.exit_plate_label.text()
-        self.exit_capture_path = confirm_vehicle_exit(
+        result = confirm_vehicle_exit(
             self.exit_entry_record,
             plate_number,
             self.current_frame,
             self.exit_confidence,
+            paid_by=self.user.get("id"),
         )
+        self.exit_capture_path = result.get("image_path")
+        payment = result.get("payment") or {}
 
-        self.exit_status_label.setText("DA XAC NHAN XE RA")
+        self.exit_status_label.setText("DA XAC NHAN THU PHI VA XE RA")
+        self.exit_fee_label.setText(
+            f"Da thu: {format_money(payment.get('amount', 0))} - "
+            f"{format_duration(int(payment.get('duration_minutes', 0)))}"
+        )
         self.confirm_exit_btn.setEnabled(False)
         self.exit_entry_record = None
         self.exit_confidence = None
+        self.exit_fee = None
         self.vehicle_exited.emit()
-        QMessageBox.information(self, "Thanh cong", "Da xac nhan xe ra va luu vao he thong.")
+        QMessageBox.information(
+            self,
+            "Thanh cong",
+            f"Da xac nhan xe ra va thu phi {format_money(payment.get('amount', 0))}.",
+        )
 
     def _show_frame(self, frame, label: QLabel) -> None:
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
