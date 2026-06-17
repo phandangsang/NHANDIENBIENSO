@@ -21,10 +21,22 @@ CREATE TABLE IF NOT EXISTS `vehicle` (
   UNIQUE KEY `uq_vehicle_plate_number` (`plate_number`)
 ) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS `parking_zones` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `zone_name` VARCHAR(64) NOT NULL,
+  `vehicle_type` VARCHAR(32) NOT NULL DEFAULT 'all',
+  `capacity` INT NOT NULL DEFAULT 0,
+  `active` TINYINT(1) NOT NULL DEFAULT 1,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_parking_zones_name` (`zone_name`)
+) ENGINE=InnoDB;
+
 CREATE TABLE IF NOT EXISTS `parking_records` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `vehicle_id` INT NOT NULL,
   `user_id` INT NULL,
+  `zone_id` INT NULL,
   `entry_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `exit_time` DATETIME NULL,
   `status` VARCHAR(8) NULL DEFAULT 'in',
@@ -36,6 +48,9 @@ CREATE TABLE IF NOT EXISTS `parking_records` (
     ON DELETE RESTRICT ON UPDATE CASCADE,
   CONSTRAINT `fk_parking_records_user`
     FOREIGN KEY (`user_id`) REFERENCES `user` (`id`)
+    ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_parking_records_zone`
+    FOREIGN KEY (`zone_id`) REFERENCES `parking_zones` (`id`)
     ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
@@ -98,3 +113,9 @@ VALUES
   ('motorbike', 60, 5000, 3000, 30000, 1),
   ('car', 60, 20000, 10000, 150000, 1)
 ON DUPLICATE KEY UPDATE `vehicle_type` = `vehicle_type`;
+
+INSERT INTO `parking_zones` (`zone_name`, `vehicle_type`, `capacity`, `active`)
+VALUES
+  ('Khu A - Xe may', 'motorbike', 50, 1),
+  ('Khu B - O to', 'car', 20, 1)
+ON DUPLICATE KEY UPDATE `zone_name` = `zone_name`;

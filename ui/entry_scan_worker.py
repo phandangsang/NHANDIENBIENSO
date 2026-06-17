@@ -29,8 +29,14 @@ class EntryScanService(QObject):
     def shutdown(self) -> None:
         stop_ocr_process()
 
-    @pyqtSlot(object, object, object)
-    def scan_entry(self, frame_bgr, user_id: int | None = None, vehicle_type: str = "car") -> None:
+    @pyqtSlot(object, object, object, object)
+    def scan_entry(
+        self,
+        frame_bgr,
+        user_id: int | None = None,
+        vehicle_type: str = "car",
+        zone_id: int | None = None,
+    ) -> None:
         if self._busy:
             return
 
@@ -50,6 +56,7 @@ class EntryScanService(QObject):
                 user_id=user_id,
                 confidence=recognition_result.get("confidence"),
                 vehicle_type=vehicle_type,
+                zone_id=zone_id,
             )
 
             self.finished_ok.emit(entry_result)

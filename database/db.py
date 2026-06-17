@@ -37,6 +37,7 @@ def init_database() -> None:
         for statement in _split_sql(schema):
             cursor.execute(statement)
         _ensure_user_columns(cursor)
+        _ensure_parking_record_columns(cursor)
         cursor.close()
 
 
@@ -86,3 +87,30 @@ def _ensure_user_columns(cursor) -> None:
         cursor.execute("SHOW COLUMNS FROM `user` LIKE %s", (column,))
         if cursor.fetchone() is None:
             cursor.execute(f"ALTER TABLE `user` ADD COLUMN `{column}` {definition}")
+
+
+def _ensure_parking_record_columns(cursor) -> None:
+    cursor.execute("SHOW COLUMNS FROM `parking_records` LIKE %s", ("zone_id",))
+    if cursor.fetchone() is None:
+        cursor.execute("ALTER TABLE `parking_records` ADD COLUMN `zone_id` INT NULL AFTER `user_id`")
+
+    cursor.execute(
+        """
+        SELECT COUNT(*) AS total
+        FROM information_schema.KEY_COLUMN_USAGE
+        WHERE TABLE_SCHEMA = DATABASE()
+          AND TABLE_NAME = 'parking_records'
+          AND CONSTRAINT_NAME = 'fk_parking_records_zone'
+        """
+    )
+    row = cursor.fetchone()
+    total = row[0] if row else 0
+    if not total:
+        cursor.execute(
+            """
+            ALTER TABLE `parking_records`
+            ADD CONSTRAINT `fk_parking_records_zone`
+              FOREIGN KEY (`zone_id`) REFERENCES `parking_zones` (`id`)
+              ON DELETE SET NULL ON UPDATE CASCADE
+            """
+        )

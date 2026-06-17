@@ -1,9 +1,12 @@
-def create_entry_record(vehicle_id: int, user_id: int | None = None) -> int:
+def create_entry_record(vehicle_id: int, user_id: int | None = None, zone_id: int | None = None) -> int:
     from database.db import execute
 
     return execute(
-        "INSERT INTO `parking_records` (`vehicle_id`, `user_id`, `status`) VALUES (%s, %s, 'in')",
-        (vehicle_id, user_id),
+        """
+        INSERT INTO `parking_records` (`vehicle_id`, `user_id`, `zone_id`, `status`)
+        VALUES (%s, %s, %s, 'in')
+        """,
+        (vehicle_id, user_id, zone_id),
     )
 
 
