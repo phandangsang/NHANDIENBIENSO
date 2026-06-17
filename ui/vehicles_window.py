@@ -107,13 +107,13 @@ class VehiclesWindow(QWidget):
 
         
         self.table = QTableWidget()
-        self.table.setColumnCount(7)
+        self.table.setColumnCount(8)
        
         self.table.setHorizontalHeaderLabels([
             "#", "BIỂN SỐ", "TỈNH/THÀNH", "LOẠI XE", "THỜI GIAN", "NGƯỜI QUÉT", "TRẠNG THÁI", "CONF."
         ])
         self.table.setHorizontalHeaderLabels([
-            "#", "BIEN SO", "TINH/THANH", "THOI GIAN", "NGUOI QUET", "TRANG THAI", "CONF."
+            "#", "BIEN SO", "TINH/THANH", "LOAI XE", "THOI GIAN", "NGUOI QUET", "TRANG THAI", "CONF."
         ])
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.table.verticalHeader().setVisible(False)
@@ -156,6 +156,13 @@ class VehiclesWindow(QWidget):
         }
         return province_map.get(prefix, "")
 
+    def _format_vehicle_type(self, vehicle_type):
+        if vehicle_type == "motorbike":
+            return "Xe may"
+        if vehicle_type == "car":
+            return "O to"
+        return str(vehicle_type or "")
+
     def load_data(self):
         keyword = self.search_input.text().strip()
         status = self.status_filter.currentText()
@@ -173,6 +180,7 @@ class VehiclesWindow(QWidget):
             SELECT
                 p.id,
                 v.plate_number,
+                v.vehicle_type,
                 p.entry_time,
                 u.full_name,
                 p.status,
@@ -223,6 +231,7 @@ class VehiclesWindow(QWidget):
            
             province = self.get_province_by_plate(plate)
             
+            vehicle_type = self._format_vehicle_type(row.get("vehicle_type"))
             e_time = str(row["entry_time"]) if row["entry_time"] else ""
             operator = str(row["full_name"]) if row["full_name"] else "Hệ thống"
             
@@ -239,6 +248,7 @@ class VehiclesWindow(QWidget):
                 str(row["id"]),
                 plate,
                 province,
+                vehicle_type,
                 e_time,
                 operator,
                 status_text,
@@ -255,7 +265,7 @@ class VehiclesWindow(QWidget):
                     font.setBold(True)
                     item.setFont(font)
                 
-                elif col == 5:
+                elif col == 6:
                     if value == "THÔNG QUA": item.setForeground(QColor("#00e676"))
                     elif value == "CẢNH BÁO": item.setForeground(QColor("#ffb300"))
                     elif value == "TỪ CHỐI": item.setForeground(QColor("#ff1744"))
@@ -263,7 +273,7 @@ class VehiclesWindow(QWidget):
                     font.setBold(True)
                     item.setFont(font)
                 
-                elif col == 6:
+                elif col == 7:
                     item.setForeground(QColor("#69f0ae"))
 
                 self.table.setItem(row_index, col, item)

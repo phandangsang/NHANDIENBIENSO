@@ -54,6 +54,47 @@ CREATE TABLE IF NOT EXISTS `images` (
     ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS `fee_rules` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `vehicle_type` VARCHAR(32) NOT NULL,
+  `first_block_minutes` INT NOT NULL DEFAULT 60,
+  `first_block_price` DECIMAL(12,2) NOT NULL DEFAULT 0,
+  `next_hour_price` DECIMAL(12,2) NOT NULL DEFAULT 0,
+  `daily_max_price` DECIMAL(12,2) NULL,
+  `active` TINYINT(1) NOT NULL DEFAULT 1,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_fee_rules_vehicle_active` (`vehicle_type`, `active`)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `payments` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `parking_record_id` INT NOT NULL,
+  `amount` DECIMAL(12,2) NOT NULL DEFAULT 0,
+  `duration_minutes` INT NOT NULL DEFAULT 0,
+  `payment_method` VARCHAR(32) NOT NULL DEFAULT 'cash',
+  `status` VARCHAR(16) NOT NULL DEFAULT 'paid',
+  `paid_by` INT NULL,
+  `paid_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_payments_parking_record` (`parking_record_id`),
+  KEY `idx_payments_paid_by` (`paid_by`),
+  CONSTRAINT `fk_payments_parking_record`
+    FOREIGN KEY (`parking_record_id`) REFERENCES `parking_records` (`id`)
+    ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_payments_paid_by`
+    FOREIGN KEY (`paid_by`) REFERENCES `user` (`id`)
+    ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
 INSERT INTO `user` (`username`, `password`, `full_name`, `role`)
 VALUES ('admin', 'admin123', 'Quan tri vien', 'admin')
 ON DUPLICATE KEY UPDATE `username` = `username`;
+
+INSERT INTO `fee_rules`
+  (`vehicle_type`, `first_block_minutes`, `first_block_price`, `next_hour_price`, `daily_max_price`, `active`)
+VALUES
+  ('motorbike', 60, 5000, 3000, 30000, 1),
+  ('car', 60, 20000, 10000, 150000, 1)
+ON DUPLICATE KEY UPDATE `vehicle_type` = `vehicle_type`;

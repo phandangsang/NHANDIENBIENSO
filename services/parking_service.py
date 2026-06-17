@@ -13,9 +13,10 @@ def record_vehicle_entry(
     image_path: str,
     user_id: int | None = None,
     confidence: float | None = None,
+    vehicle_type: str = "car",
 ) -> int:
     plate_number = normalize_plate_number(plate_number)
-    vehicle_id = get_or_create_vehicle(plate_number)
+    vehicle_id = get_or_create_vehicle(plate_number, vehicle_type)
     record_id = create_entry_record(vehicle_id, user_id)
 
     create_image(record_id, image_path, "entry", plate_number, confidence)

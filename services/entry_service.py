@@ -8,7 +8,13 @@ from models.vehicle_model import find_by_plate_number
 from services.parking_service import record_vehicle_entry
 
 
-def create_vehicle_entry(plate_number: str, frame_bgr, user_id: int | None, confidence=None) -> dict:
+def create_vehicle_entry(
+    plate_number: str,
+    frame_bgr,
+    user_id: int | None,
+    confidence=None,
+    vehicle_type: str = "car",
+) -> dict:
     vehicle = find_by_plate_number(plate_number)
     if vehicle:
         active_record = find_active_record_by_vehicle(int(vehicle["id"]))
@@ -21,11 +27,13 @@ def create_vehicle_entry(plate_number: str, frame_bgr, user_id: int | None, conf
         image_path=image_path,
         user_id=user_id,
         confidence=confidence,
+        vehicle_type=vehicle_type,
     )
 
     return {
         "record_id": record_id,
         "plate_number": plate_number,
+        "vehicle_type": vehicle_type,
         "image_path": image_path,
         "confidence": confidence,
         "captured_at": datetime.now().strftime("%d/%m/%Y %H:%M:%S"),

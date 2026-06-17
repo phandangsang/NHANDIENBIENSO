@@ -16,9 +16,20 @@ def create_vehicle(plate_number: str, vehicle_type: str = "car") -> int:
     )
 
 
+def update_vehicle_type(vehicle_id: int, vehicle_type: str) -> None:
+    from database.db import execute
+
+    execute(
+        "UPDATE `vehicle` SET `vehicle_type` = %s WHERE `id` = %s",
+        (vehicle_type, vehicle_id),
+    )
+
+
 def get_or_create_vehicle(plate_number: str, vehicle_type: str = "car") -> int:
     vehicle = find_by_plate_number(plate_number)
     if vehicle:
+        if vehicle_type and vehicle.get("vehicle_type") != vehicle_type:
+            update_vehicle_type(int(vehicle["id"]), vehicle_type)
         return int(vehicle["id"])
 
     return create_vehicle(plate_number, vehicle_type)
