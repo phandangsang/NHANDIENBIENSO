@@ -26,7 +26,7 @@ class VehiclesWindow(QWidget):
 
        
         self.setAttribute(Qt.WA_StyledBackground, True)
-        self.setStyleSheet("background-color: #030a1c;")
+        self.setStyleSheet("background-color: #f7f8fb;")
 
         self.load_style()
         self.build_ui()
@@ -264,21 +264,21 @@ class VehiclesWindow(QWidget):
                 item.setTextAlignment(Qt.AlignCenter)
                 
                 if col == 1:
-                    item.setForeground(QColor("#00e5ff"))
+                    item.setForeground(QColor("#003aaf"))
                     font = QFont()
                     font.setBold(True)
                     item.setFont(font)
                 
                 elif col == 7:
-                    if value == "THÔNG QUA": item.setForeground(QColor("#00e676"))
-                    elif value == "CẢNH BÁO": item.setForeground(QColor("#ffb300"))
-                    elif value == "TỪ CHỐI": item.setForeground(QColor("#ff1744"))
+                    if value == "THÔNG QUA": item.setForeground(QColor("#06623b"))
+                    elif value == "CẢNH BÁO": item.setForeground(QColor("#a66a00"))
+                    elif value == "TỪ CHỐI": item.setForeground(QColor("#a42235"))
                     font = QFont()
                     font.setBold(True)
                     item.setFont(font)
                 
                 elif col == 8:
-                    item.setForeground(QColor("#69f0ae"))
+                    item.setForeground(QColor("#06623b"))
 
                 self.table.setItem(row_index, col, item)
 

@@ -1,34 +1,49 @@
 #sidebar {
-    background-color: #eef2ff; /* separate from white dashboard */
-    border-right: 1px solid #e2e8f0;
+    background-color: #f3f5f9;
+    border-right: 1px solid #c7ccdc;
 }
 
 QLabel#sidebarTitle {
-    font-size: 28px;
-    font-weight: bold;
-    color: #1d4ed8;
+    background-color: transparent;
+    color: #003aaf;
+    font-size: 24px;
+    font-weight: 800;
 }
 
-QPushButton {
-    background-color: #2563eb;
-    color: white;
+#sidebar QPushButton {
+    background-color: transparent;
+    color: #222838;
     border: none;
+    border-radius: 8px;
     padding: 12px 14px;
     text-align: left;
     font-size: 15px;
-    border-radius: 10px;
+    font-weight: 700;
 }
 
-QPushButton:hover {
-    background-color: #1d4ed8;
+#sidebar QPushButton:hover {
+    background-color: #e7ebf7;
+    color: #003aaf;
 }
 
-QPushButton#logoutButton {
-    background-color: #fee2e2;
-    color: #b91c1c;
-    border: 1px solid #fecaca;
+#sidebar QPushButton:checked {
+    background-color: #d8e2ff;
+    color: #4f5b72;
 }
 
-QPushButton#logoutButton:hover {
-    background-color: #fecaca;
+#sidebar QPushButton:pressed {
+    background-color: #d8e2ff;
+}
+
+#sidebar QPushButton#logoutButton {
+    color: #a42235;
+    border-top: 1px solid #c7ccdc;
+    border-radius: 0;
+    padding-top: 14px;
+}
+
+#sidebar QPushButton#logoutButton:hover {
+    background-color: #ffe9ed;
+    color: #8b1728;
+    border-radius: 8px;
 }

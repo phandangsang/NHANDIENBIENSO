@@ -1,54 +1,54 @@
 #UserPage,
 #UserPage QFrame,
 #UserPage QWidget {
-    background-color: #07111f;
-    color: #e6f3ff;
-    font-family: Segoe UI;
+    background-color: #f7f8fb;
+    color: #111318;
+    font-family: "Segoe UI", Arial, sans-serif;
     font-size: 14px;
 }
 
 #UserPage #SidePanel {
-    background-color: #0b1d33;
-    border-right: 1px solid #1b4d78;
+    background-color: #f3f5f9;
+    border-right: 1px solid #c7ccdc;
 }
 
 #UserPage #ContentPanel {
-    background-color: #07111f;
+    background-color: #f7f8fb;
 }
 
 #UserPage #Card {
-    background-color: #102846;
-    border: 1px solid #245d8c;
+    background-color: #ffffff;
+    border: 1px solid #c7ccdc;
     border-radius: 8px;
 }
 
 #UserPage QLabel {
     background-color: transparent;
-    color: #d8ebff;
+    color: #222838;
     border: none;
 }
 
 #UserPage #PageTitle {
-    color: #ffffff;
-    font-size: 20px;
-    font-weight: 700;
+    color: #111318;
+    font-size: 22px;
+    font-weight: 800;
 }
 
 #UserPage #Name {
-    color: #ffffff;
+    color: #111318;
     font-size: 26px;
     font-weight: 800;
 }
 
 #UserPage #Muted {
-    color: #9ec2df;
+    color: #566071;
     font-size: 14px;
 }
 
 #UserPage #RolePill {
-    background-color: #063f5f;
-    color: #35d7ff;
-    border: 1px solid #0a86bd;
+    background-color: #e7ebf7;
+    color: #003aaf;
+    border: 1px solid #c7d4f5;
     border-radius: 8px;
     padding: 6px 14px;
     font-size: 13px;
@@ -56,61 +56,62 @@
 }
 
 #UserPage #InfoLabel {
-    color: #9ec2df;
+    color: #566071;
     font-size: 12px;
-    font-weight: 700;
+    font-weight: 800;
 }
 
 #UserPage QLineEdit,
 #UserPage QComboBox {
-    background-color: #0f2742;
-    color: #ffffff;
-    border: 1px solid #2d6798;
-    border-radius: 8px;
-    padding: 10px 12px;
-    selection-background-color: #00bdf2;
+    background-color: #ffffff;
+    color: #111318;
+    border: 1px solid #9098ad;
+    border-radius: 5px;
+    padding: 9px 12px;
+    selection-background-color: #d8e2ff;
+    selection-color: #003aaf;
 }
 
 #UserPage QLineEdit:focus,
 #UserPage QComboBox:focus {
-    border: 1px solid #22d3ff;
+    border: 1px solid #003aaf;
 }
 
 #UserPage QPushButton {
-    min-height: 36px;
-    border-radius: 8px;
+    min-height: 34px;
+    border-radius: 5px;
     padding: 8px 16px;
     font-weight: 800;
 }
 
 #UserPage #PrimaryButton {
-    background-color: #16c7f3;
-    color: #06101c;
-    border: 1px solid #16c7f3;
+    background-color: #003aaf;
+    color: #ffffff;
+    border: 1px solid #002f8f;
 }
 
 #UserPage #PrimaryButton:hover {
-    background-color: #40d6ff;
+    background-color: #002f8f;
 }
 
 #UserPage #GhostButton {
-    background-color: #0d223d;
-    color: #34d7ff;
-    border: 1px solid #1486b8;
+    background-color: #ffffff;
+    color: #111318;
+    border: 1px solid #9098ad;
 }
 
 #UserPage #GhostButton:hover {
-    background-color: #123154;
+    background-color: #f3f5f9;
 }
 
 #UserPage #DangerButton {
-    background-color: #32131e;
-    color: #ff6470;
-    border: 1px solid #a02b3b;
+    background-color: #ffffff;
+    color: #a42235;
+    border: 1px solid #d2a2ac;
 }
 
 #UserPage #DangerButton:hover {
-    background-color: #451826;
+    background-color: #ffe9ed;
 }
 
 #UserPage QListWidget {
@@ -120,85 +121,85 @@
 }
 
 #UserPage QListWidget::item {
-    background-color: #102846;
-    color: #e6f3ff;
-    border: 1px solid #1f517d;
+    background-color: #ffffff;
+    color: #222838;
+    border: 1px solid #c7ccdc;
     border-radius: 8px;
     margin: 5px 0;
     padding: 12px;
 }
 
 #UserPage QListWidget::item:selected {
-    background-color: #16466d;
-    color: #ffffff;
-    border: 1px solid #22d3ff;
+    background-color: #d8e2ff;
+    color: #003aaf;
+    border: 1px solid #b5c7ff;
 }
 
 #UserPage QListWidget::item:hover {
-    background-color: #143a5f;
+    background-color: #eef3ff;
 }
 
 #UserDialog {
-    background-color: #07111f;
-    color: #e6f3ff;
-    font-family: Segoe UI;
+    background-color: #f7f8fb;
+    color: #111318;
+    font-family: "Segoe UI", Arial, sans-serif;
 }
 
 #UserDialog QLabel {
     background-color: transparent;
-    color: #d8ebff;
+    color: #222838;
     border: none;
 }
 
 #UserDialog #PageTitle {
-    color: #ffffff;
+    color: #111318;
     font-size: 20px;
-    font-weight: 700;
+    font-weight: 800;
 }
 
 #UserDialog QLineEdit,
 #UserDialog QComboBox {
-    background-color: #0f2742;
-    color: #f4fbff;
-    border: 1px solid #2d6798;
-    border-radius: 8px;
+    background-color: #ffffff;
+    color: #111318;
+    border: 1px solid #9098ad;
+    border-radius: 5px;
     min-height: 26px;
     padding: 4px 10px;
     font-size: 14px;
     font-weight: 500;
-    selection-background-color: #19c8f4;
-    selection-color: #06101c;
+    selection-background-color: #d8e2ff;
+    selection-color: #003aaf;
 }
 
 #UserDialog QLineEdit::placeholder {
-    color: #7fa6c4;
+    color: #71788a;
 }
 
 #UserDialog QLineEdit:read-only {
-    background-color: #12263d;
-    color: #b8d6ec;
+    background-color: #f3f5f9;
+    color: #566071;
 }
 
 #UserDialog QLineEdit:focus,
 #UserDialog QComboBox:focus {
-    border: 1px solid #22d3ff;
+    border: 1px solid #003aaf;
 }
 
 #UserDialog QPushButton {
     min-height: 34px;
-    border-radius: 8px;
+    border-radius: 5px;
     padding: 8px 14px;
     font-weight: 800;
 }
 
 #UserDialog QPushButton {
-    background-color: #16c7f3;
-    color: #06101c;
-    border: 1px solid #16c7f3;
+    background-color: #003aaf;
+    color: #ffffff;
+    border: 1px solid #002f8f;
 }
 
 #UserDialog #GhostButton {
-    background-color: #0d223d;
-    color: #34d7ff;
-    border: 1px solid #1486b8;
+    background-color: #ffffff;
+    color: #111318;
+    border: 1px solid #9098ad;
 }

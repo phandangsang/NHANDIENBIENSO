@@ -108,12 +108,12 @@ class RevenueWindow(QWidget):
                 item = QTableWidgetItem(value)
                 item.setTextAlignment(Qt.AlignCenter)
                 if col == 1:
-                    item.setForeground(QColor("#00e5ff"))
+                    item.setForeground(QColor("#003aaf"))
                     font = QFont()
                     font.setBold(True)
                     item.setFont(font)
                 elif col == 4:
-                    item.setForeground(QColor("#69f0ae"))
+                    item.setForeground(QColor("#06623b"))
                     font = QFont()
                     font.setBold(True)
                     item.setFont(font)
