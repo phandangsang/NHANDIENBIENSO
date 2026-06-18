@@ -1,115 +1,121 @@
 #ExitWindow,
 #ExitWindow QWidget {
-    background-color: #f4f7fb;
-    color: #111827;
-    font-family: Segoe UI;
+    background-color: #030a1c;
+    color: #ffffff;
+    font-family: "Segoe UI", Arial, sans-serif;
     font-size: 14px;
 }
 
 #ExitWindow #PageTitle {
     background-color: transparent;
-    color: #0f172a;
+    color: #ffffff;
     border: none;
-    font-size: 24px;
-    font-weight: 800;
+    font-size: 18px;
+    font-weight: bold;
 }
 
 #ExitWindow #SectionTitle {
     background-color: transparent;
-    color: #0f172a;
+    color: #ffffff;
     border: none;
-    font-size: 16px;
-    font-weight: 800;
+    font-size: 15px;
+    font-weight: bold;
 }
 
 #ExitWindow #CompareCard {
-    background-color: #ffffff;
-    border: 1px solid #dbe4ef;
-    border-radius: 12px;
+    background-color: #051228;
+    border: 1px solid #0c264d;
+    border-radius: 4px;
 }
 
 #ExitWindow #ExitCameraPreview {
-    background-color: #0f172a;
-    color: #e5e7eb;
-    border: 1px solid #1e293b;
-    border-radius: 12px;
-    font-size: 16px;
+    background-color: #06152d;
+    color: #4f73a5;
+    border: 1px solid #103161;
+    border-radius: 4px;
+    font-size: 15px;
+    font-weight: bold;
 }
 
 #ExitWindow #EntryImagePreview {
-    background-color: #f8fafc;
-    color: #475569;
-    border: 2px dashed #cbd5e1;
-    border-radius: 12px;
-    font-size: 16px;
+    background-color: #06152d;
+    color: #4f73a5;
+    border: 1px dashed #10366b;
+    border-radius: 4px;
+    font-size: 15px;
+    font-weight: bold;
 }
 
 #ExitWindow QLineEdit {
-    background-color: #ffffff;
-    color: #111827;
-    border: 1px solid #cbd5e1;
-    border-radius: 8px;
-    padding: 10px 12px;
-    font-size: 15px;
+    background-color: #06152d;
+    color: #ffffff;
+    border: 1px solid #103161;
+    border-radius: 4px;
+    padding: 6px 12px;
 }
 
 #ExitWindow QLineEdit:focus {
-    border: 2px solid #2563eb;
+    border: 1px solid #00e5ff;
 }
 
 #ExitWindow #info_frame {
-    background-color: #ffffff;
-    border: 1px solid #dbe4ef;
-    border-radius: 12px;
-    padding: 14px;
+    background-color: #051228;
+    border: 1px solid #0c264d;
+    border-radius: 4px;
+    padding: 12px;
 }
 
 #ExitWindow #plate_label {
-    background-color: #eef6ff;
-    color: #0f172a;
-    border: 1px solid #c7ddff;
-    border-radius: 10px;
+    background-color: #06152d;
+    color: #00e5ff;
+    border: 1px solid #103161;
+    border-radius: 4px;
     padding: 18px;
     font-size: 26px;
-    font-weight: 800;
+    font-weight: bold;
 }
 
 #ExitWindow #time_label {
-    background-color: #ecfdf5;
-    color: #065f46;
-    border: 1px solid #bbf7d0;
-    border-radius: 10px;
+    background-color: #06152d;
+    color: #69f0ae;
+    border: 1px solid #103161;
+    border-radius: 4px;
     padding: 18px;
     font-size: 18px;
-    font-weight: 800;
+    font-weight: bold;
 }
 
 #ExitWindow QPushButton {
-    border: none;
-    border-radius: 8px;
-    font-size: 15px;
-    font-weight: 800;
+    border: 1px solid #10366b;
+    border-radius: 4px;
+    padding: 10px 14px;
+    font-size: 14px;
+    font-weight: bold;
 }
 
 #ExitWindow #PrimaryButton {
-    background-color: #2563eb;
-    color: #ffffff;
+    background-color: #092142;
+    color: #00e5ff;
 }
 
 #ExitWindow #PrimaryButton:hover {
-    background-color: #1d4ed8;
+    background-color: #0b2752;
+    border-color: #00e5ff;
 }
 
 #ExitWindow #ConfirmButton {
-    background-color: #059669;
-    color: #ffffff;
+    background-color: #06351f;
+    color: #69f0ae;
+    border-color: #0c5c39;
 }
 
 #ExitWindow #ConfirmButton:hover {
-    background-color: #047857;
+    background-color: #075c34;
+    border-color: #69f0ae;
 }
 
 #ExitWindow QPushButton:disabled {
-    background-color: #cbd5e1;
-    color: #64748b;
+    background-color: #071326;
+    color: #4f73a5;
+    border-color: #0c264d;
 }
