@@ -1,53 +1,67 @@
 QWidget {
-    background-color: #f4f6f8;
-    font-family: Segoe UI;
+    background-color: #030a1c;
+    color: #ffffff;
+    font-family: "Segoe UI", Arial, sans-serif;
     font-size: 14px;
 }
 
 #titleLabel {
-    color: #1f2937;
+    background-color: transparent;
+    color: #ffffff;
     font-size: 28px;
     font-weight: bold;
 }
 
 #subtitleLabel {
-    color: #6b7280;
+    background-color: transparent;
+    color: #00e5ff;
     font-size: 14px;
+    font-weight: bold;
 }
 
 QLineEdit {
-    background-color: white;
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
-    padding: 10px;
+    background-color: #06152d;
+    border: 1px solid #103161;
+    border-radius: 4px;
+    color: #ffffff;
+    padding: 10px 12px;
     font-size: 14px;
 }
 
 QLineEdit:focus {
-    border: 2px solid #2563eb;
+    border: 1px solid #00e5ff;
+}
+
+QLineEdit::placeholder {
+    color: #4f73a5;
 }
 
 QPushButton {
-    background-color: #2563eb;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 10px;
+    background-color: #092142;
+    color: #00e5ff;
+    border: 1px solid #10366b;
+    border-radius: 4px;
+    padding: 10px 14px;
+    font-size: 14px;
     font-weight: bold;
 }
 
 QPushButton:hover {
-    background-color: #1d4ed8;
+    background-color: #0b2752;
+    border-color: #00e5ff;
 }
 
 QPushButton:pressed {
-    background-color: #1e40af;
+    background-color: #06152d;
 }
 
 #exitButton {
-    background-color: #ef4444;
+    background-color: #2a0c18;
+    color: #ff6b8a;
+    border-color: #6b1730;
 }
 
 #exitButton:hover {
-    background-color: #dc2626;
+    background-color: #3b1022;
+    border-color: #ff6b8a;
 }
