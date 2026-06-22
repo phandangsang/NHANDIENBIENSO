@@ -1,13 +1,16 @@
+import csv
 import os
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor, QFont
 from PyQt5.QtWidgets import (
     QFrame,
+    QFileDialog,
     QGridLayout,
     QHBoxLayout,
     QHeaderView,
     QLabel,
+    QMessageBox,
     QPushButton,
     QTableWidget,
     QTableWidgetItem,
@@ -23,6 +26,7 @@ class RevenueWindow(QWidget):
     def __init__(self):
         super().__init__()
         self.setObjectName("RevenueWindow")
+        self.current_rows = []
         self._load_style()
         self._build_ui()
         self.load_data()
@@ -44,8 +48,12 @@ class RevenueWindow(QWidget):
         refresh_btn = QPushButton("Lam moi")
         refresh_btn.setObjectName("exportBtn")
         refresh_btn.clicked.connect(self.load_data)
+        export_btn = QPushButton("⬇ Xuat CSV")
+        export_btn.setObjectName("exportBtn")
+        export_btn.clicked.connect(self.export_csv)
         title_row.addWidget(title)
         title_row.addStretch()
+        title_row.addWidget(export_btn)
         title_row.addWidget(refresh_btn)
         root.addLayout(title_row)
 
@@ -92,6 +100,7 @@ class RevenueWindow(QWidget):
         self.revenue_label.value_label.setText(format_money(total_revenue))
 
         rows = list_payment_history()
+        self.current_rows = rows
         self.table.setRowCount(len(rows))
         for row_index, row in enumerate(rows):
             values = [
@@ -118,6 +127,59 @@ class RevenueWindow(QWidget):
                     font.setBold(True)
                     item.setFont(font)
                 self.table.setItem(row_index, col, item)
+
+    def export_csv(self):
+        if not self.current_rows:
+            QMessageBox.information(self, "Xuat CSV", "Khong co du lieu doanh thu de xuat.")
+            return
+
+        default_path = os.path.join(os.getcwd(), "bao_cao_doanh_thu.csv")
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Luu file CSV",
+            default_path,
+            "CSV Files (*.csv)",
+        )
+        if not file_path:
+            return
+
+        if not file_path.lower().endswith(".csv"):
+            file_path += ".csv"
+
+        headers = [
+            "#",
+            "BIEN SO",
+            "LOAI XE",
+            "THOI GIAN GUI",
+            "SO TIEN",
+            "THU NGAN",
+            "THANH TOAN",
+            "THOI GIAN THU",
+        ]
+
+        try:
+            with open(file_path, "w", newline="", encoding="utf-8-sig") as csv_file:
+                writer = csv.writer(csv_file)
+                writer.writerow(headers)
+
+                for row in self.current_rows:
+                    writer.writerow(
+                        [
+                            row.get("id") or "",
+                            row.get("plate_number") or "",
+                            self._format_vehicle_type(row.get("vehicle_type")),
+                            format_duration(int(row.get("duration_minutes") or 0)),
+                            format_money(float(row.get("amount") or 0)),
+                            row.get("paid_by_name") or "He thong",
+                            "Tien mat",
+                            row.get("paid_at") or "",
+                        ]
+                    )
+        except Exception as exc:
+            QMessageBox.warning(self, "Xuat CSV that bai", f"Khong the xuat file CSV.\nLoi: {exc}")
+            return
+
+        QMessageBox.information(self, "Xuat CSV", f"Da xuat file CSV thanh cong.\n{file_path}")
 
     def _format_vehicle_type(self, vehicle_type):
         if vehicle_type == "motorbike":

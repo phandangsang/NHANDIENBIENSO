@@ -8,10 +8,12 @@ class Sidebar(QWidget):
     pageChanged = pyqtSignal(int)
     logoutRequested = pyqtSignal()
 
-    def __init__(self):
+    def __init__(self, user_role: str = "staff"):
         super().__init__()
         self.setObjectName("sidebar")
         self.nav_buttons = []
+        self.user_role = (user_role or "staff").lower()
+        self.revenue_button = None
 
         css_path = Path(__file__).resolve().parent / "style" / "sidebar.css"
         try:
@@ -36,6 +38,7 @@ class Sidebar(QWidget):
         btn_vehicles = self._create_nav_button("Danh sach xe", 2)
         btn_revenue = self._create_nav_button("Doanh thu", 3)
         btn_users = self._create_nav_button("Nguoi dung", 4)
+        self.revenue_button = btn_revenue
         btn_logout = QPushButton("Dang xuat")
         btn_logout.setObjectName("logoutButton")
 
@@ -44,7 +47,8 @@ class Sidebar(QWidget):
         layout.addWidget(btn_dashboard)
         layout.addWidget(btn_exit_scan)
         layout.addWidget(btn_vehicles)
-        layout.addWidget(btn_revenue)
+        if self._can_view_revenue():
+            layout.addWidget(btn_revenue)
         layout.addWidget(btn_users)
         layout.addStretch()
         layout.addWidget(btn_logout)
@@ -65,3 +69,6 @@ class Sidebar(QWidget):
     def _set_active_button(self, active_button: QPushButton) -> None:
         for button in self.nav_buttons:
             button.setChecked(button is active_button)
+
+    def _can_view_revenue(self) -> bool:
+        return self.user_role == "admin"

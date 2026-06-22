@@ -84,12 +84,12 @@ class DashboardWindow(QMainWindow):
         main_layout = QHBoxLayout(central_widget)
         main_layout.setContentsMargins(0, 0, 0, 0)
 
-        self.sidebar = Sidebar()
+        self.sidebar = Sidebar(self.user.get("role", "staff"))
         self.stack = QStackedWidget()
 
         self.page_dashboard = self._create_dashboard_page()
         self.page_exit_scan = ExitWindow(self.user)
-        self.page_vehicles = VehiclesWindow()
+        self.page_vehicles = VehiclesWindow(can_export_csv=self._can_manage_users())
         self.page_revenue = RevenueWindow()
         self.page_users = UserPage()
         self._setup_user_page()
@@ -339,6 +339,13 @@ class DashboardWindow(QMainWindow):
         self.zone_select.blockSignals(False)
 
     def change_page(self, index: int) -> None:
+        if index == 3 and not self._can_manage_users():
+            QMessageBox.warning(
+                self,
+                "Khong co quyen",
+                "Chi tai khoan admin moi duoc xem doanh thu.",
+            )
+            return
         self.stack.setCurrentIndex(index)
 
     def _setup_user_page(self) -> None:
