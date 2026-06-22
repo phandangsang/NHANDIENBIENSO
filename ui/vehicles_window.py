@@ -1,10 +1,13 @@
+import csv
 import os
 
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import QDate, Qt
 from PyQt5.QtWidgets import (
     QWidget,
     QVBoxLayout,
     QHBoxLayout,
+    QCheckBox,
+    QDateEdit,
     QLabel,
     QPushButton,
     QLineEdit,
@@ -12,7 +15,8 @@ from PyQt5.QtWidgets import (
     QTableWidget,
     QTableWidgetItem,
     QHeaderView,
-    
+    QFileDialog,
+    QMessageBox,
 )
 from PyQt5.QtGui import QColor, QFont
  
@@ -21,12 +25,13 @@ from database.db import fetch_all
 
 class VehiclesWindow(QWidget):
 
-    def __init__(self):
+    def __init__(self, can_export_csv: bool = True):
         super().__init__()
 
-       
+        self.can_export_csv = can_export_csv
         self.setAttribute(Qt.WA_StyledBackground, True)
         self.setStyleSheet("background-color: #f7f8fb;")
+        self.current_rows = []
 
         self.load_style()
         self.build_ui()
@@ -58,14 +63,16 @@ class VehiclesWindow(QWidget):
         self.total_label = QLabel("0 lượt")
         self.total_label.setObjectName("totalBadge")
 
-        export_btn = QPushButton("⬇ Xuất CSV")
-        export_btn.setObjectName("exportBtn")
+        self.export_btn = QPushButton("⬇ Xuất CSV")
+        self.export_btn.setObjectName("exportBtn")
+        self.export_btn.clicked.connect(self.export_csv)
+        self.export_btn.setVisible(self.can_export_csv)
 
         title_layout.addWidget(title)
         title_layout.addSpacing(12)
         title_layout.addWidget(self.total_label)
         title_layout.addStretch()
-        title_layout.addWidget(export_btn)
+        title_layout.addWidget(self.export_btn)
 
         root.addLayout(title_layout)
 
@@ -99,9 +106,22 @@ class VehiclesWindow(QWidget):
         self.camera_filter.addItems(["Tất cả người dùng"])
         self.camera_filter.currentIndexChanged.connect(self.load_data)
 
+        self.all_dates_checkbox = QCheckBox("Tat ca ngay")
+        self.all_dates_checkbox.setChecked(True)
+        self.all_dates_checkbox.toggled.connect(self._toggle_date_filter)
+
+        self.date_filter = QDateEdit()
+        self.date_filter.setCalendarPopup(True)
+        self.date_filter.setDisplayFormat("dd/MM/yyyy")
+        self.date_filter.setDate(QDate.currentDate())
+        self.date_filter.setEnabled(False)
+        self.date_filter.dateChanged.connect(self.load_data)
+
         
         filter_layout.addWidget(self.search_input, 5)
         filter_layout.addWidget(self.camera_filter, 3)
+        filter_layout.addWidget(self.all_dates_checkbox, 2)
+        filter_layout.addWidget(self.date_filter, 2)
 
         root.addLayout(filter_layout)
 
@@ -163,6 +183,10 @@ class VehiclesWindow(QWidget):
             return "O to"
         return str(vehicle_type or "")
 
+    def _toggle_date_filter(self, checked: bool) -> None:
+        self.date_filter.setEnabled(not checked)
+        self.load_data()
+
     def load_data(self):
         keyword = self.search_input.text().strip()
         status = self.status_filter.currentText()
@@ -215,6 +239,11 @@ class VehiclesWindow(QWidget):
             sql += " AND u.full_name = %s"
             params.append(user_filter_text)
 
+        if not self.all_dates_checkbox.isChecked():
+            selected_date = self.date_filter.date().toString("yyyy-MM-dd")
+            sql += " AND DATE(p.entry_time) = %s"
+            params.append(selected_date)
+
         sql += " ORDER BY p.id DESC"
 
        
@@ -224,6 +253,7 @@ class VehiclesWindow(QWidget):
         except Exception as e:
             print(f"Lỗi truy vấn database: {e}")
 
+        self.current_rows = rows
         self.table.setRowCount(len(rows))
         self.total_label.setText(f"{len(rows)} lượt")
 
@@ -282,6 +312,84 @@ class VehiclesWindow(QWidget):
 
                 self.table.setItem(row_index, col, item)
 
-        
+    def export_csv(self):
+        if not self.can_export_csv:
+            QMessageBox.warning(self, "Khong co quyen", "Tai khoan nay khong duoc phep xuat CSV.")
+            return
+
+        if not self.current_rows:
+            QMessageBox.information(self, "Xuat CSV", "Khong co du lieu de xuat.")
+            return
+
+        default_path = os.path.join(os.getcwd(), "danh_sach_xe.csv")
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Luu file CSV",
+            default_path,
+            "CSV Files (*.csv)",
+        )
+        if not file_path:
+            return
+
+        if not file_path.lower().endswith(".csv"):
+            file_path += ".csv"
+
+        headers = [
+            "#",
+            "BIEN SO",
+            "TINH/THANH",
+            "LOAI XE",
+            "KHU VUC",
+            "THOI GIAN",
+            "NGUOI QUET",
+            "TRANG THAI",
+            "CONF.",
+        ]
+
+        try:
+            with open(file_path, "w", newline="", encoding="utf-8-sig") as csv_file:
+                writer = csv.writer(csv_file)
+                writer.writerow(headers)
+
+                for row in self.current_rows:
+                    plate = str(row["plate_number"]) if row["plate_number"] else ""
+                    province = self.get_province_by_plate(plate)
+                    vehicle_type = self._format_vehicle_type(row.get("vehicle_type"))
+                    zone_name = str(row["zone_name"]) if row.get("zone_name") else "-"
+                    entry_time = str(row["entry_time"]) if row["entry_time"] else ""
+                    operator = str(row["full_name"]) if row["full_name"] else "He thong"
+
+                    status_raw = str(row["status"]).strip()
+                    if status_raw == "in":
+                        status_text = "THONG QUA"
+                    elif status_raw == "warning":
+                        status_text = "CANH BAO"
+                    elif status_raw == "deny":
+                        status_text = "TU CHOI"
+                    else:
+                        status_text = status_raw.upper()
+
+                    conf_raw = row.get("confidence")
+                    conf_text = f"{float(conf_raw) * 100:.1f}%" if conf_raw is not None else ""
+
+                    writer.writerow(
+                        [
+                            row["id"],
+                            plate,
+                            province,
+                            vehicle_type,
+                            zone_name,
+                            entry_time,
+                            operator,
+                            status_text,
+                            conf_text,
+                        ]
+                    )
+        except Exception as exc:
+            QMessageBox.warning(self, "Xuat CSV that bai", f"Khong the xuat file CSV.\nLoi: {exc}")
+            return
+
+        QMessageBox.information(self, "Xuat CSV", f"Da xuat file CSV thanh cong.\n{file_path}")
+
 
    
